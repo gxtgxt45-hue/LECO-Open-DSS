@@ -1315,6 +1315,35 @@
   }
 
 </style>
+
+<script>
+window.popupHtml = function(p) {
+  if (!p) return "";
+  const is_tf = p.is_tf ? " (Transformer)" : "";
+  const load = (p.load_kw != null) ? p.load_kw + " kW" : "0 kW";
+  const solar = (p.solar_kw != null) ? p.solar_kw + " kW" : "0 kW";
+  const feeder = p.feeder || "—";
+  return "<div style='font-family:DM Sans,sans-serif; color:#e2e8f0; font-size:12px; line-height:1.5;'>"
+    + "<div style='font-weight:700; font-size:14px; color:#22d3ee; margin-bottom:4px;'>Pole " + p.id + is_tf + "</div>"
+    + "<div><span style='color:#94a3b8;'>Feeder:</span> <b>" + feeder + "</b></div>"
+    + "<div><span style='color:#94a3b8;'>Load:</span> <b>" + load + "</b></div>"
+    + "<div><span style='color:#94a3b8;'>Solar PV:</span> <b>" + solar + "</b></div>"
+    + "</div>";
+};
+
+window.showPoleVoltagePanel = function(p) {
+  if (!p) return;
+  const panel = document.getElementById("polePhasePanel");
+  if (panel) panel.style.display = "block";
+  const title = document.getElementById("polePhaseTitle");
+  if (title) title.textContent = "Pole " + p.id + (p.is_tf ? " (TF)" : "");
+  const v = p.V_noon || p.V_peak || {Va: 230, Vb: 230, Vc: 230};
+  if (document.getElementById("mVa")) document.getElementById("mVa").textContent = (v.Va || "—") + " V";
+  if (document.getElementById("mVb")) document.getElementById("mVb").textContent = (v.Vb || "—") + " V";
+  if (document.getElementById("mVc")) document.getElementById("mVc").textContent = (v.Vc || "—") + " V";
+};
+</script>
+
 </head>
 <body>
 <script>window.EMBEDDED_FULL_RESULTS = {
@@ -5286,6 +5315,7 @@ document.getElementById("btnProcess") && (document.getElementById("btnProcess").
       if(sd && sd.value) window.activeDay = sd.value;
       if(typeof loadMultiDayData === "function") await loadMultiDayData();
       if(typeof loadVoltageTimeline === "function") await loadVoltageTimeline(window.activeDay||"");
+      if(typeof window.loadNetworkMap === "function") await window.loadNetworkMap();
       if(typeof onStudyDayChange === "function") await onStudyDayChange();
       if(typeof setTimeIdx === "function") setTimeIdx(window.timeIdx||76);
     } catch (e2) {
@@ -5311,6 +5341,20 @@ async function refreshUploadList(){
 }
 document.getElementById("btnListUploads") && (document.getElementById("btnListUploads").onclick = refreshUploadList);
 refreshUploadList();
+
+// Add file selection change listeners to prompt the user to click Upload & Process
+["fileCons", "fileSolar", "fileLP", "fileNet"].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) {
+    el.addEventListener("change", () => {
+      const st = document.getElementById("uploadStatus");
+      if (st) {
+        st.innerHTML = "⚡ Files selected! Next step: click <b>1) Upload selected files</b> then <b>2) Process & run update</b>";
+        st.style.color = "#38bdf8";
+      }
+    });
+  }
+});
 
 
 
@@ -5357,29 +5401,41 @@ window.V_HI = 243.8;
 /* heat: use toggleHeatMap via button onclick only */
 
 
-loadVoltageTimeline(window.activeDay||""); fetch("/network_map.json")
-  .then(r=>{ if(!r.ok) throw new Error("map json "+r.status); return r.json(); })
-  .then(net=>{
-    const fc=net.feeder_colors||{}; window._feederColors=fc;
-    let leg='<div class="leg-title">Feeders</div>';
-    Object.keys(fc).sort().forEach(f=>{
+window.loadNetworkMap = async function() {
+  try {
+    if(typeof loadVoltageTimeline === "function") await loadVoltageTimeline(window.activeDay||"");
+    const r = await fetch("/network_map.json?t=" + Date.now());
+    if(!r.ok) throw new Error("map json "+r.status);
+    const net = await r.json();
+
+    if (window.lineLayer) window.lineLayer.clearLayers();
+    if (window.poleLayer) window.poleLayer.clearLayers();
+    window.poleMarkers = {};
+
+    const fc = net.feeder_colors||{}; window._feederColors = fc;
+    let leg = '<div class="leg-title">Feeders</div>';
+    Object.keys(fc).sort().forEach(f => {
       const name = (f==="TF") ? "Transformer" : ("Feeder "+f);
       leg += '<div class="leg-row"><span class="sw" style="background:'+fc[f]+'"></span><span>'+name+'</span></div>';
     });
     leg += '<div class="leg-row"><span class="sw" style="background:#f59e0b"></span><span>Solar &gt; 0</span></div>';
     const legEl = document.getElementById("legend");
     if(legEl){ legEl.className = "legend"; legEl.innerHTML = leg; legEl.style.display = "block"; }
-    (net.lines||[]).forEach(ln=>{
-      const col=fc[ln.feeder]||"#64748b";
-      if(ln.latlngs && ln.latlngs.length>=2) L.polyline(ln.latlngs,{color:col,weight:5,opacity:0.95}).addTo(lineLayer);
+
+    (net.lines||[]).forEach(ln => {
+      const col = fc[ln.feeder]||"#64748b";
+      if(ln.latlngs && ln.latlngs.length>=2 && window.lineLayer) {
+        L.polyline(ln.latlngs,{color:col,weight:5,opacity:0.95}).addTo(lineLayer);
+      }
     });
-    const bounds=[];
-    (net.poles||[]).forEach(p=>{
+
+    const bounds = [];
+    (net.poles||[]).forEach(p => {
       bounds.push([p.lat,p.lon]);
-      const col=p.is_tf?"#22d3ee":(p.solar_kw>0?"#f59e0b":(fc[p.feeder]||"#94a3b8"));
-      const r=p.is_tf?11:(p.solar_kw>0?8:6);
-      const m=L.circleMarker([p.lat,p.lon],{radius:r, color:"#0f172a", fillColor:col, fillOpacity:1, weight:2});
-      m._baseStyle={radius:r, color:"#0f172a", fillColor:col, fillOpacity:1, weight:2};
+      const col = p.is_tf ? "#22d3ee" : (p.solar_kw>0 ? "#f59e0b" : (fc[p.feeder]||"#94a3b8"));
+      const r = p.is_tf ? 11 : (p.solar_kw>0 ? 8 : 6);
+      const m = L.circleMarker([p.lat,p.lon], {radius:r, color:"#0f172a", fillColor:col, fillOpacity:1, weight:2});
+      m._baseStyle = {radius:r, color:"#0f172a", fillColor:col, fillOpacity:1, weight:2};
       m.bindPopup(function(){ return popupHtml(p); }, {maxWidth:280});
       m.on("click", function(){ window.selectedPole = p; window.selectedMarker = this; this.openPopup(); showPoleVoltagePanel(p); });
       m.on("dblclick", function(e){
@@ -5391,25 +5447,39 @@ loadVoltageTimeline(window.activeDay||""); fetch("/network_map.json")
       });
       m._poleData = p;
       window.poleMarkers[p.id] = m; window._allPoleMarkers = window.poleMarkers;
-      m.addTo(poleLayer);
-      L.marker([p.lat, p.lon], {
-        icon: L.divIcon({
-          className: p.is_tf ? "pole-name-label tf" : "pole-name-label",
-          html: p.id,
-          iconSize: [0, 0],
-          iconAnchor: [-10, 6]
-        }),
-        interactive: false,
-        keyboard: false
-      }).addTo(poleLayer);
+      if (window.poleLayer) {
+        m.addTo(poleLayer);
+        L.marker([p.lat, p.lon], {
+          icon: L.divIcon({
+            className: p.is_tf ? "pole-name-label tf" : "pole-name-label",
+            html: p.id,
+            iconSize: [0, 0],
+            iconAnchor: [-10, 6]
+          }),
+          interactive: false,
+          keyboard: false
+        }).addTo(poleLayer);
+      }
     });
-    if(bounds.length){ map.fitBounds(bounds,{padding:[30,30]}); setTimeout(()=>map.invalidateSize(),200); }
+
+    if(bounds.length && window.map) {
+      map.fitBounds(bounds, {padding:[30,30]});
+      setTimeout(() => map.invalidateSize(), 200);
+    }
     if(window.activeDay && typeof setTimeIdx==='function') setTimeIdx(window.timeIdx||76);
     if(window.heatOn && typeof applyHeatMap==='function') applyHeatMap();
-    document.getElementById("mapInfo").textContent=
-      `Poles: ${(net.poles||[]).length} · Lines: ${(net.lines||[]).length} · Solar: ${(net.poles||[]).filter(p=>p.solar_kw>0).length}`;
-  })
-  .catch(e=>{ document.getElementById("mapInfo").textContent="Map data missing: "+e.message; });
+
+    const mapInfo = document.getElementById("mapInfo");
+    if (mapInfo) {
+      mapInfo.textContent = `Poles: ${(net.poles||[]).length} · Lines: ${(net.lines||[]).length} · Solar: ${(net.poles||[]).filter(p=>p.solar_kw>0).length}`;
+    }
+  } catch(e) {
+    const mapInfo = document.getElementById("mapInfo");
+    if (mapInfo) mapInfo.textContent = "Map data missing: "+e.message;
+  }
+};
+
+window.loadNetworkMap();
 
 fetch("/api/status").then(r=>r.json()).then(s=>{
   document.getElementById("dot").classList.add("on");
