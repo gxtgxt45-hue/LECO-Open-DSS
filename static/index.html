@@ -5218,8 +5218,10 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
   maxZoom:19, attribution:"&copy; OpenStreetMap"
 }).addTo(map);
 
-const lineLayer=L.layerGroup().addTo(map);
-const poleLayer=L.layerGroup().addTo(map);
+window.lineLayer = L.layerGroup().addTo(map);
+window.poleLayer = L.layerGroup().addTo(map);
+const lineLayer = window.lineLayer;
+const poleLayer = window.poleLayer;
 
 
 /* replaced */
@@ -5416,8 +5418,14 @@ window.loadNetworkMap = async function() {
     if(!r.ok) throw new Error("map json "+r.status);
     const net = await r.json();
 
-    if (window.lineLayer) window.lineLayer.clearLayers();
-    if (window.poleLayer) window.poleLayer.clearLayers();
+    const activeMap = window._map || (typeof map !== "undefined" ? map : null);
+    const lineLayer = window.lineLayer || L.layerGroup().addTo(activeMap);
+    const poleLayer = window.poleLayer || L.layerGroup().addTo(activeMap);
+    window.lineLayer = lineLayer;
+    window.poleLayer = poleLayer;
+
+    lineLayer.clearLayers();
+    poleLayer.clearLayers();
     window.poleMarkers = {};
 
     const fc = net.feeder_colors||{}; window._feederColors = fc;
@@ -5432,7 +5440,7 @@ window.loadNetworkMap = async function() {
 
     (net.lines||[]).forEach(ln => {
       const col = fc[ln.feeder]||"#64748b";
-      if(ln.latlngs && ln.latlngs.length>=2 && window.lineLayer) {
+      if(ln.latlngs && ln.latlngs.length>=2) {
         L.polyline(ln.latlngs,{color:col,weight:5,opacity:0.95}).addTo(lineLayer);
       }
     });
@@ -5455,24 +5463,22 @@ window.loadNetworkMap = async function() {
       });
       m._poleData = p;
       window.poleMarkers[p.id] = m; window._allPoleMarkers = window.poleMarkers;
-      if (window.poleLayer) {
-        m.addTo(poleLayer);
-        L.marker([p.lat, p.lon], {
-          icon: L.divIcon({
-            className: p.is_tf ? "pole-name-label tf" : "pole-name-label",
-            html: p.id,
-            iconSize: [0, 0],
-            iconAnchor: [-10, 6]
-          }),
-          interactive: false,
-          keyboard: false
-        }).addTo(poleLayer);
-      }
+      m.addTo(poleLayer);
+      L.marker([p.lat, p.lon], {
+        icon: L.divIcon({
+          className: p.is_tf ? "pole-name-label tf" : "pole-name-label",
+          html: p.id,
+          iconSize: [0, 0],
+          iconAnchor: [-10, 6]
+        }),
+        interactive: false,
+        keyboard: false
+      }).addTo(poleLayer);
     });
 
-    if(bounds.length && window.map) {
-      map.fitBounds(bounds, {padding:[30,30]});
-      setTimeout(() => map.invalidateSize(), 200);
+    if(bounds.length && activeMap) {
+      activeMap.fitBounds(bounds, {padding:[30,30]});
+      setTimeout(() => activeMap.invalidateSize(), 200);
     }
     if(window.activeDay && typeof setTimeIdx==='function') setTimeIdx(window.timeIdx||76);
     if(window.heatOn && typeof applyHeatMap==='function') applyHeatMap();
