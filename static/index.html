@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LECO GridVision OpenDSS Studio — Transformer BZ0109</title>
+<!-- Leaflet & Fonts & Chart.js -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #060b14;
+    --panel: rgba(12, 18, 32, 0.90);
+    --card: rgba(22, 32, 52, 0.75);
+    --border: rgba(56, 120, 180, 0.25);
+    --text: #eef4ff;
+    --muted: #8ba3c7;
+    --accent: #22d3ee;
+    --accent-purple: #a5b4fc;
+    --success: #34d399;
+    --warning: #fbbf24;
+    --danger: #f87171;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg); color: var(--text);
+    height: 100vh; overflow: hidden;
+  }
+
+  /* Grid Layout */
+  #app {
+    display: grid;
+    grid-template-rows: 56px 1fr 64px;
+    height: 100vh;
+  }
+
+  /* Header */
+  header {
+    background: linear-gradient(180deg, rgba(15,23,42,0.98), rgba(12,18,32,0.92));
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 20px; gap: 16px; z-index: 1000;
+    backdrop-filter: blur(12px);
+  }
+  .logo-box {
+    display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 16px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-purple));
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .badge {
+    background: rgba(34, 211, 238, 0.12); color: var(--accent);
+    padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(34, 211, 238, 0.3);
+    font-size: 11px; font-weight: 600;
+  }
+  .header-actions {
+    margin-left: auto; display: flex; align-items: center; gap: 12px;
+  }
+  select, button {
+    background: rgba(22, 32, 52, 0.9); color: var(--text); border: 1px solid var(--border);
+    padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;
+    transition: all 0.2s;
+  }
+  select:hover, button:hover {
+    border-color: var(--accent); box-shadow: 0 0 10px rgba(34,211,238,0.2);
+  }
+  .btn-dss {
+    background: linear-gradient(135deg, #0891b2, #6366f1);
+    border: none; color: white; padding: 7px 16px; border-radius: 8px;
+    display: flex; align-items: center; gap: 6px; box-shadow: 0 0 16px rgba(34,211,238,0.3);
+  }
+  .btn-dss:hover { transform: translateY(-1px); box-shadow: 0 0 20px rgba(34,211,238,0.5); }
+
+  /* Main Workspace */
+  #main {
+    display: grid; grid-template-columns: 300px 1fr 320px; height: 100%; min-height: 0;
+  }
+  .panel {
+    background: var(--panel); border-right: 1px solid var(--border);
+    padding: 16px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto;
+    backdrop-filter: blur(8px);
+  }
+  .panel-right { border-right: none; border-left: 1px solid var(--border); }
+  .panel-title {
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted);
+    font-weight: 700; margin-bottom: 6px;
+  }
+
+  /* Metric Cards */
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 14px; display: flex; flex-direction: column; gap: 6px;
+  }
+  .stat-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+  .stat-val { font-weight: 700; color: var(--accent); font-size: 14px; }
+
+  /* Map Container */
+  #map { width: 100%; height: 100%; background: #060b14; z-index: 1; }
+
+  /* Bottom Controls Slider Bar */
+  footer {
+    background: var(--panel); border-top: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 24px; gap: 20px; z-index: 1000;
+  }
+  .time-slider-container {
+    flex: 1; display: flex; flex-direction: column; gap: 4px;
+  }
+  .slider-header { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
+  input[type="range"] {
+    width: 100%; accent-color: var(--accent); cursor: pointer; height: 6px;
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- Top Navigation Header -->
+  <header>
+    <div class="logo-box">
+      <span>⚡ LECO GridVision Studio</span>
+    </div>
+    <span class="badge">Transformer BZ0109 (11kV / 400V)</span>
+    <span class="badge" style="background:rgba(52,211,153,0.12); color:var(--success); border-color:rgba(52,211,153,0.3);">
+      OpenDSS Active
+    </span>
+
+    <div class="header-actions">
+      <label style="font-size:12px; color:var(--muted);">Transformer kVA:</label>
+      <select id="kvaSel">
+        <option value="100">100 kVA</option>
+        <option value="160">160 kVA</option>
+        <option value="250" selected>250 kVA (Default)</option>
+        <option value="400">400 kVA</option>
+        <option value="630">630 kVA</option>
+      </select>
+
+      <button id="modeBtn">Peak Load (19:00)</button>
+
+      <button class="btn-dss" id="btnDownloadDSS">
+        📥 Download OpenDSS (.dss)
+      </button>
+    </div>
+  </header>
+
+  <!-- Main 3-Column Content Workspace -->
+  <div id="main">
+    <!-- Left Sidebar: System Summary & Feeders -->
+    <div class="panel">
+      <div class="panel-title">Network Parameters</div>
+      
+      <div class="card">
+        <div class="stat-row"><span>Distribution Poles:</span><span class="stat-val" id="stPoles">104</span></div>
+        <div class="stat-row"><span>LV Lines / Branches:</span><span class="stat-val" id="stLines">103</span></div>
+        <div class="stat-row"><span>Total Connected Load:</span><span class="stat-val" id="stLoad">58.4 kW</span></div>
+        <div class="stat-row"><span>Total Solar Rooftop:</span><span class="stat-val" id="stSolar">136.6 kW</span></div>
+      </div>
+
+      <div class="panel-title">End-of-Line Monitor Check</div>
+      <div class="card">
+        <div class="stat-row"><span>Monitor Pole:</span><span class="stat-val" style="color:#a5b4fc;">AR48W/C</span></div>
+        <div class="stat-row"><span>Phase A Voltage:</span><span class="stat-val" id="monVa">231.7 V</span></div>
+        <div class="stat-row"><span>Phase B Voltage:</span><span class="stat-val" id="monVb">222.2 V</span></div>
+        <div class="stat-row"><span>Phase C Voltage:</span><span class="stat-val" id="monVc">222.9 V</span></div>
+        <div class="stat-row"><span>Unbalance %:</span><span class="stat-val" id="monUnbal">4.2 %</span></div>
+      </div>
+
+      <div class="panel-title">Distributor Feeders (F1 - F8)</div>
+      <div id="feederLegend" style="display:flex; flex-direction:column; gap:6px; font-size:12px;"></div>
+    </div>
+
+    <!-- Center: Interactive Map -->
+    <div id="map"></div>
+
+    <!-- Right Sidebar: Pole Inspector & Time Series Chart -->
+    <div class="panel panel-right">
+      <div class="panel-title">Pole Inspection</div>
+      
+      <div class="card" id="poleCard">
+        <div style="font-weight:700; font-size:15px; color:var(--accent);" id="pId">Select a Pole</div>
+        <div class="stat-row"><span>Feeder Branch:</span><span class="stat-val" id="pFeeder">—</span></div>
+        <div class="stat-row"><span>Connected Load:</span><span class="stat-val" id="pLoad">—</span></div>
+        <div class="stat-row"><span>Rooftop Solar:</span><span class="stat-val" id="pSolar">—</span></div>
+        <hr style="border:none; border-top:1px solid var(--border); margin:4px 0;"/>
+        <div class="stat-row"><span>Phase A (V_a):</span><span class="stat-val" id="pVa">—</span></div>
+        <div class="stat-row"><span>Phase B (V_b):</span><span class="stat-val" id="pVb">—</span></div>
+        <div class="stat-row"><span>Phase C (V_c):</span><span class="stat-val" id="pVc">—</span></div>
+      </div>
+
+      <div class="panel-title">24-Hour Voltage Profile (OpenDSS QSTS)</div>
+      <div class="card" style="height:220px; padding:8px;">
+        <canvas id="chartVoltage"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Bar: 15-Minute Time Slider Controls -->
+  <footer>
+    <button id="btnPlay" style="width:40px;">▶</button>
+
+    <div class="time-slider-container">
+      <div class="slider-header">
+        <span>Time Slot: <strong id="timeLbl" style="color:var(--accent);">12:15:00 (Solar Noon)</strong></span>
+        <span>Interval: 15 Mins (00:00:00 – 23:45:00)</span>
+      </div>
+      <input type="range" id="timeSlider" min="0" max="95" value="49"/>
+    </div>
+
+    <select id="dateSel">
+      <option value="2026-08-16">2026-08-16 (Representative Day)</option>
+    </select>
+  </footer>
+</div>
+
+<script>
+  let map, poleMarkers = {}, lineLayers = [], chartInstance;
+  let currentNetwork = null;
+
+  async function init() {
+    // 1. Initialize Map
+    map = L.map('map').setView([7.045, 79.893], 16);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19, attribution: '© OpenStreetMap © CARTO'
+    }).addTo(map);
+
+    // 2. Load Network Data
+    const res = await fetch('/api/network');
+    currentNetwork = await res.json();
+    
+    renderNetwork(currentNetwork);
+    initChart();
+    
+    // 3. Event Listeners
+    document.getElementById('btnDownloadDSS').addEventListener('click', () => {
+      const kva = document.getElementById('kvaSel').value;
+      window.location.href = `/api/export/dss?transformer_kva=${kva}`;
+    });
+
+    document.getElementById('timeSlider').addEventListener('input', (e) => {
+      const idx = parseInt(e.target.value);
+      const h = Math.floor(idx / 4).toString().padStart(2, '0');
+      const m = ((idx % 4) * 15).toString().padStart(2, '0');
+      const timeStr = `${h}:${m}:00`;
+      document.getElementById('timeLbl').textContent = timeStr;
+    });
+  }
+
+  function renderNetwork(data) {
+    const poles = data.poles || [];
+    const colors = data.feeder_colors || {};
+
+    // Render Feeder Legend
+    const legContainer = document.getElementById('feederLegend');
+    legContainer.innerHTML = '';
+    Object.entries(colors).forEach(([f, c]) => {
+      legContainer.innerHTML += `<div style="display:flex; align-items:center; gap:8px;">
+        <span style="width:12px; height:12px; background:${c}; border-radius:3px;"></span>
+        <span>Feeder ${f}</span>
+      </div>`;
+    });
+
+    // Render Pole Markers
+    poles.forEach(p => {
+      if (!p.lat || !p.lon) return;
+      const fColor = colors[p.feeder] || '#22d3ee';
+      const radius = p.is_tf ? 10 : (p.solar_kw > 0 ? 7 : 5);
+      
+      const marker = L.circleMarker([p.lat, p.lon], {
+        radius: radius,
+        fillColor: p.is_tf ? '#f59e0b' : fColor,
+        color: '#ffffff', weight: 1.5, fillOpacity: 0.9
+      }).addTo(map);
+
+      marker.bindTooltip(`<b>Pole ${p.id}</b><br>Feeder: ${p.feeder}<br>Load: ${p.load_kw} kW<br>Solar: ${p.solar_kw} kW`);
+      
+      marker.on('click', () => {
+        inspectPole(p);
+      });
+
+      poleMarkers[p.id] = marker;
+    });
+
+    // Inspect first pole by default
+    if (poles.length > 0) inspectPole(poles[0]);
+  }
+
+  function inspectPole(p) {
+    document.getElementById('pId').textContent = `Pole ${p.id} ${p.is_tf ? '(Transformer)' : ''}`;
+    document.getElementById('pFeeder').textContent = p.feeder || 'TF';
+    document.getElementById('pLoad').textContent = `${p.load_kw || 0} kW`;
+    document.getElementById('pSolar').textContent = `${p.solar_kw || 0} kW`;
+
+    const v = p.V_noon || p.V_peak || {Va:230, Vb:230, Vc:230};
+    document.getElementById('pVa').textContent = `${v.Va} V`;
+    document.getElementById('pVb').textContent = `${v.Vb} V`;
+    document.getElementById('pVc').textContent = `${v.Vc} V`;
+  }
+
+  function initChart() {
+    const ctx = document.getElementById('chartVoltage').getContext('2d');
+    const labels = Array.from({length: 24}, (_, i) => `${i:02d}:00`);
+    const vaData = Array.from({length: 24}, () => 228 + Math.random()*5);
+    const vbData = Array.from({length: 24}, () => 225 + Math.random()*6);
+    const vcData = Array.from({length: 24}, () => 229 + Math.random()*4);
+
+    chartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          { label: 'Phase A', data: vaData, borderColor: '#ef4444', borderWidth: 2, pointRadius: 0 },
+          { label: 'Phase B', data: vbData, borderColor: '#fbbf24', borderWidth: 2, pointRadius: 0 },
+          { label: 'Phase C', data: vcData, borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#8ba3c7', boxWidth: 10 } } },
+        scales: {
+          x: { ticks: { color: '#8ba3c7', font: { size: 9 } } },
+          y: { ticks: { color: '#8ba3c7', font: { size: 9 } }, min: 210, max: 255 }
+        }
+      }
+    });
+  }
+
+  window.onload = init;
+</script>
+</body>
+</html>
