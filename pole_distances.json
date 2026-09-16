@@ -1,0 +1,1267 @@
+{
+  "transformer": "AR48T",
+  "unit": "m",
+  "n": 140,
+  "poles": [
+    {
+      "id": "AR48T",
+      "distance_m": 0.0,
+      "feeder": "TF",
+      "is_tf": true,
+      "method": "path",
+      "lat": 7.046495606289465,
+      "lon": 79.8925140295383
+    },
+    {
+      "id": "AR48S-1",
+      "distance_m": 22.3,
+      "feeder": "F3",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.046503193622947,
+      "lon": 79.89271651880426
+    },
+    {
+      "id": "AR48U",
+      "distance_m": 38.9,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.046468270437619,
+      "lon": 79.89216229293086
+    },
+    {
+      "id": "AR48U/A",
+      "distance_m": 40.2,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.046215791913089,
+      "lon": 79.89228230778261
+    },
+    {
+      "id": "AR48S",
+      "distance_m": 44.8,
+      "feeder": "F3",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.046498848798406,
+      "lon": 79.89292087693319
+    },
+    {
+      "id": "AR48U/B/A",
+      "distance_m": 52.0,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.046054697965088,
+      "lon": 79.89267429076664
+    },
+    {
+      "id": "AR48U/C",
+      "distance_m": 75.7,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.0458302423298,
+      "lon": 79.8923623604135
+    },
+    {
+      "id": "AR48V",
+      "distance_m": 77.7,
+      "feeder": "F7",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.046389748849081,
+      "lon": 79.89181636400211
+    },
+    {
+      "id": "AR48R",
+      "distance_m": 83.4,
+      "feeder": "F3",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.046453109136271,
+      "lon": 79.89326960156217
+    },
+    {
+      "id": "AR48U/D/A",
+      "distance_m": 89.4,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.04569039453164,
+      "lon": 79.89251437916218
+    },
+    {
+      "id": "AR48U/B",
+      "distance_m": 97.7,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.045968888265069,
+      "lon": 79.89234247693469
+    },
+    {
+      "id": "AR48R-1",
+      "distance_m": 99.0,
+      "feeder": "F3",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.046398819875742,
+      "lon": 79.89340749018086
+    },
+    {
+      "id": "AR48U/D/B",
+      "distance_m": 103.3,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.045571392768029,
+      "lon": 79.89262093246126
+    },
+    {
+      "id": "AR48U/D/C",
+      "distance_m": 104.0,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.045599006442309,
+      "lon": 79.89278684995853
+    },
+    {
+      "id": "AR48Q",
+      "distance_m": 112.2,
+      "feeder": "F3",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.046353487868342,
+      "lon": 79.89352237096382
+    },
+    {
+      "id": "AR48U/D/D/A",
+      "distance_m": 117.9,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.045591022262898,
+      "lon": 79.89307501795784
+    },
+    {
+      "id": "AR48U/E",
+      "distance_m": 118.3,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.045434770305949,
+      "lon": 79.89240656768808
+    },
+    {
+      "id": "AR48U/F1",
+      "distance_m": 124.3,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.045383446375766,
+      "lon": 79.89238203711163
+    },
+    {
+      "id": "AR48W",
+      "distance_m": 127.0,
+      "feeder": "F8",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.046205651368287,
+      "lon": 79.89139839062575
+    },
+    {
+      "id": "AR48Q2",
+      "distance_m": 128.1,
+      "feeder": "F3",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.046648802522748,
+      "lon": 79.89366642053868
+    },
+    {
+      "id": "AR48Q3",
+      "distance_m": 131.4,
+      "feeder": "F4",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.046848669632617,
+      "lon": 79.89365213324696
+    },
+    {
+      "id": "AR48Q1",
+      "distance_m": 131.9,
+      "feeder": "F3",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.046375858351399,
+      "lon": 79.89370546361648
+    },
+    {
+      "id": "AR48U/D",
+      "distance_m": 134.3,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.045642956379346,
+      "lon": 79.89238763931517
+    },
+    {
+      "id": "AR48W/A",
+      "distance_m": 136.0,
+      "feeder": "F8",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.04591005567791,
+      "lon": 79.89142997453254
+    },
+    {
+      "id": "AR48Q4",
+      "distance_m": 137.9,
+      "feeder": "F4",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.047050261215929,
+      "lon": 79.8936340730053
+    },
+    {
+      "id": "AR48Q4/1",
+      "distance_m": 140.0,
+      "feeder": "F4",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.046976147349868,
+      "lon": 79.89368932314571
+    },
+    {
+      "id": "AR48Q5",
+      "distance_m": 147.7,
+      "feeder": "F4",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.047251927069748,
+      "lon": 79.89361704439555
+    },
+    {
+      "id": "AR48P",
+      "distance_m": 151.0,
+      "feeder": "F3",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.046204643641752,
+      "lon": 79.89385348644991
+    },
+    {
+      "id": "AR48U/B/B",
+      "distance_m": 152.5,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.046044720299645,
+      "lon": 79.89283316528477
+    },
+    {
+      "id": "BELL TOWER",
+      "distance_m": 157.3,
+      "feeder": "F8",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.045504031627546,
+      "lon": 79.89149383373757
+    },
+    {
+      "id": "AR48Q6",
+      "distance_m": 160.8,
+      "feeder": "F4",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.047461421482314,
+      "lon": 79.89360140843445
+    },
+    {
+      "id": "AR48Q4/2",
+      "distance_m": 165.0,
+      "feeder": "F4",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.047009010442974,
+      "lon": 79.89387684480853
+    },
+    {
+      "id": "AR48U/F",
+      "distance_m": 168.5,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.045335416579119,
+      "lon": 79.89241188670937
+    },
+    {
+      "id": "AR48X",
+      "distance_m": 169.0,
+      "feeder": "F8",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.04624337665897,
+      "lon": 79.89100077964069
+    },
+    {
+      "id": "AR48U/H",
+      "distance_m": 173.6,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.044972548118463,
+      "lon": 79.89215536894739
+    },
+    {
+      "id": "AR48N-1",
+      "distance_m": 173.8,
+      "feeder": "F2",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.046116647520309,
+      "lon": 79.89404462922386
+    },
+    {
+      "id": "AR48U/G/A",
+      "distance_m": 184.5,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.044835558334773,
+      "lon": 79.89243804859906
+    },
+    {
+      "id": "AR48U/G/B",
+      "distance_m": 185.4,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.044825965802212,
+      "lon": 79.89248193594845
+    },
+    {
+      "id": "AR48U/J",
+      "distance_m": 188.8,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.04490387631178,
+      "lon": 79.89190895881339
+    },
+    {
+      "id": "AR48N1",
+      "distance_m": 189.3,
+      "feeder": "F2",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.046155287741979,
+      "lon": 79.89419810856818
+    },
+    {
+      "id": "AR48N",
+      "distance_m": 190.8,
+      "feeder": "F2",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.046060681685771,
+      "lon": 79.89418930805247
+    },
+    {
+      "id": "AR48U/F2",
+      "distance_m": 191.8,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.045359380728867,
+      "lon": 79.89220171771514
+    },
+    {
+      "id": "AR48U/D/D",
+      "distance_m": 192.8,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.045635310347587,
+      "lon": 79.892918566144
+    },
+    {
+      "id": "AR48N2",
+      "distance_m": 198.1,
+      "feeder": "F2",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.046423181702164,
+      "lon": 79.8943106679151
+    },
+    {
+      "id": "AR48U/G",
+      "distance_m": 198.2,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.045081798216652,
+      "lon": 79.89232540705807
+    },
+    {
+      "id": "AR48N3",
+      "distance_m": 204.0,
+      "feeder": "F2",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.046571608705729,
+      "lon": 79.89436405128451
+    },
+    {
+      "id": "AR48Q7",
+      "distance_m": 205.8,
+      "feeder": "F4",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.047659933141426,
+      "lon": 79.89357796412023
+    },
+    {
+      "id": "AR48Y",
+      "distance_m": 211.2,
+      "feeder": "F8",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.046274439803884,
+      "lon": 79.89063793641502
+    },
+    {
+      "id": "AR48U/J-1",
+      "distance_m": 213.5,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.04469820539201,
+      "lon": 79.89182483644039
+    },
+    {
+      "id": "AR48M-1",
+      "distance_m": 219.2,
+      "feeder": "F2",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.045961026896898,
+      "lon": 79.89442932452923
+    },
+    {
+      "id": "AR48U/D/D/B",
+      "distance_m": 226.9,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.045360627565434,
+      "lon": 79.8931789967778
+    },
+    {
+      "id": "AR48W/C",
+      "distance_m": 228.1,
+      "feeder": "F8",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.045320383063785,
+      "lon": 79.8916121213405
+    },
+    {
+      "id": "AR48M",
+      "distance_m": 231.4,
+      "feeder": "F2",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.045891761992907,
+      "lon": 79.89452447042306
+    },
+    {
+      "id": "AR48U/K",
+      "distance_m": 231.7,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.044543084431314,
+      "lon": 79.89177102137589
+    },
+    {
+      "id": "AR48U/G/C",
+      "distance_m": 250.8,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.044886674289183,
+      "lon": 79.89276076759465
+    },
+    {
+      "id": "AR48U/L/B",
+      "distance_m": 252.2,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.044251038920422,
+      "lon": 79.89215702192729
+    },
+    {
+      "id": "AR48N4",
+      "distance_m": 256.0,
+      "feeder": "F2",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.046640937447529,
+      "lon": 79.89428367608627
+    },
+    {
+      "id": "AR48U/L/A",
+      "distance_m": 259.0,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.044210643660382,
+      "lon": 79.8920365531959
+    },
+    {
+      "id": "AR48M//A",
+      "distance_m": 262.1,
+      "feeder": "F2",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.045814592703674,
+      "lon": 79.89479232107205
+    },
+    {
+      "id": "AR48M//B1",
+      "distance_m": 274.1,
+      "feeder": "F2",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.045599027494021,
+      "lon": 79.89483265390503
+    },
+    {
+      "id": "AR48M//B",
+      "distance_m": 275.2,
+      "feeder": "F2",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.045790388060891,
+      "lon": 79.89490620342956
+    },
+    {
+      "id": "AR48M//B2",
+      "distance_m": 275.9,
+      "feeder": "F2",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.045321882997162,
+      "lon": 79.89472124312057
+    },
+    {
+      "id": "AR48U/L-1",
+      "distance_m": 278.6,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.044095991048782,
+      "lon": 79.8917733947768
+    },
+    {
+      "id": "AR48M//B3",
+      "distance_m": 283.6,
+      "feeder": "F2",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.045304998172671,
+      "lon": 79.89479185318403
+    },
+    {
+      "id": "AR48U/M/B",
+      "distance_m": 289.2,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.043904820066365,
+      "lon": 79.89223243026858
+    },
+    {
+      "id": "AR48U/L-2",
+      "distance_m": 289.6,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.043988238734704,
+      "lon": 79.89178672699457
+    },
+    {
+      "id": "AR48U/M/A",
+      "distance_m": 294.2,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.043887684022497,
+      "lon": 79.89203946348518
+    },
+    {
+      "id": "AR48U/L",
+      "distance_m": 315.4,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.044190486702148,
+      "lon": 79.89175620475118
+    },
+    {
+      "id": "AR48M//C",
+      "distance_m": 316.2,
+      "feeder": "F1",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.045738465644032,
+      "lon": 79.89528097836984
+    },
+    {
+      "id": "AR48U/N1",
+      "distance_m": 329.6,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.043616468010113,
+      "lon": 79.89178098639107
+    },
+    {
+      "id": "AR48M//B4",
+      "distance_m": 339.4,
+      "feeder": "F2",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.045230126004893,
+      "lon": 79.8950474986324
+    },
+    {
+      "id": "AR48M//D",
+      "distance_m": 339.6,
+      "feeder": "F1",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.045789619243992,
+      "lon": 79.89551379650243
+    },
+    {
+      "id": "AR48U/N2",
+      "distance_m": 343.4,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.04357463427232,
+      "lon": 79.8914881321045
+    },
+    {
+      "id": "AR48M//E",
+      "distance_m": 353.0,
+      "feeder": "F1",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.045866153417639,
+      "lon": 79.89565463769335
+    },
+    {
+      "id": "AR48U/M",
+      "distance_m": 353.9,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.043846291876339,
+      "lon": 79.8918053432546
+    },
+    {
+      "id": "AR48M//F",
+      "distance_m": 355.5,
+      "feeder": "F1",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.045866351888156,
+      "lon": 79.89567852248202
+    },
+    {
+      "id": "AR48M//G",
+      "distance_m": 369.6,
+      "feeder": "F1",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.045718524644654,
+      "lon": 79.89577627749884
+    },
+    {
+      "id": "AR48U/P/A-1",
+      "distance_m": 369.9,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.043205598676106,
+      "lon": 79.89197972583709
+    },
+    {
+      "id": "AR48M//E1",
+      "distance_m": 370.5,
+      "feeder": "F1",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.045597099767837,
+      "lon": 79.89575305471644
+    },
+    {
+      "id": "AR48U/Q1-1",
+      "distance_m": 375.6,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.043275113358422,
+      "lon": 79.89146831998372
+    },
+    {
+      "id": "AR48M//E2",
+      "distance_m": 376.6,
+      "feeder": "F1",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.045358317383719,
+      "lon": 79.89573472246471
+    },
+    {
+      "id": "AR48U/L/C",
+      "distance_m": 378.3,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.044272538134805,
+      "lon": 79.89232182270788
+    },
+    {
+      "id": "AR48U/Q1",
+      "distance_m": 379.0,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.04326527860032,
+      "lon": 79.89139884122916
+    },
+    {
+      "id": "AR48U/N",
+      "distance_m": 381.3,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.043602571752411,
+      "lon": 79.8918442413702
+    },
+    {
+      "id": "AR48M//E3",
+      "distance_m": 382.5,
+      "feeder": "F1",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.045079765983927,
+      "lon": 79.89567923883205
+    },
+    {
+      "id": "AR48U/P/A",
+      "distance_m": 384.1,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.043065850841509,
+      "lon": 79.89205026665597
+    },
+    {
+      "id": "AR48M//H",
+      "distance_m": 385.1,
+      "feeder": "F1",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.045562536009325,
+      "lon": 79.8958808177909
+    },
+    {
+      "id": "AR48M//E5",
+      "distance_m": 385.5,
+      "feeder": "F1",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.044766835678885,
+      "lon": 79.89554950352793
+    },
+    {
+      "id": "AR48M//E4",
+      "distance_m": 400.2,
+      "feeder": "F1",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.044833766439553,
+      "lon": 79.89573826844381
+    },
+    {
+      "id": "AR48M//E3A",
+      "distance_m": 403.5,
+      "feeder": "F1",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.044960478808894,
+      "lon": 79.89582792335895
+    },
+    {
+      "id": "AR48U/P",
+      "distance_m": 406.0,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.043386185587171,
+      "lon": 79.89189546485298
+    },
+    {
+      "id": "AR48U/P/B-1B",
+      "distance_m": 414.9,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.042757965460571,
+      "lon": 79.89249859291316
+    },
+    {
+      "id": "AR48U/P/B-1A",
+      "distance_m": 416.8,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.042744413494421,
+      "lon": 79.89233668478012
+    },
+    {
+      "id": "AR48U/P/C",
+      "distance_m": 418.1,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.042792168415718,
+      "lon": 79.89182363068007
+    },
+    {
+      "id": "AR48U/P/B-1",
+      "distance_m": 419.7,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.042728925764439,
+      "lon": 79.89218258026285
+    },
+    {
+      "id": "AR48U/P/B/A",
+      "distance_m": 429.1,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.042641833392156,
+      "lon": 79.89221256300168
+    },
+    {
+      "id": "AR48U/M/C",
+      "distance_m": 433.9,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.043769619896469,
+      "lon": 79.89252730178585
+    },
+    {
+      "id": "AR48U/S",
+      "distance_m": 436.1,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.042684819284646,
+      "lon": 79.8915519253475
+    },
+    {
+      "id": "AR48M//E6",
+      "distance_m": 443.8,
+      "feeder": "F1",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.044551380372829,
+      "lon": 79.89551584979833
+    },
+    {
+      "id": "AR48U/Q",
+      "distance_m": 445.9,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.04329582649948,
+      "lon": 79.89154491748477
+    },
+    {
+      "id": "AR48U/P/D",
+      "distance_m": 451.6,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.042477804240498,
+      "lon": 79.89187126451833
+    },
+    {
+      "id": "AR48U/N3",
+      "distance_m": 452.3,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.043543167283762,
+      "lon": 79.89120256231855
+    },
+    {
+      "id": "AR48U/P/B",
+      "distance_m": 454.4,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.042860461816309,
+      "lon": 79.89214774130316
+    },
+    {
+      "id": "AR48U/T",
+      "distance_m": 461.5,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.042458481395784,
+      "lon": 79.8915108814733
+    },
+    {
+      "id": "AR48U/R",
+      "distance_m": 489.6,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.042906315151713,
+      "lon": 79.89160019184146
+    },
+    {
+      "id": "AR48U/U-1",
+      "distance_m": 490.2,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.04219321887574,
+      "lon": 79.89151107385572
+    },
+    {
+      "id": "AR48U/P/E/A",
+      "distance_m": 491.0,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.042086830792369,
+      "lon": 79.89214921693132
+    },
+    {
+      "id": "AR48U/P/E/B",
+      "distance_m": 491.3,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.04207273572195,
+      "lon": 79.89234243187711
+    },
+    {
+      "id": "AR48U/Q2",
+      "distance_m": 491.4,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.043201565355535,
+      "lon": 79.89114290588178
+    },
+    {
+      "id": "AR48U/U",
+      "distance_m": 508.3,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.042024726397042,
+      "lon": 79.89151778134224
+    },
+    {
+      "id": "AR48U/P/F",
+      "distance_m": 519.3,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.041849739139546,
+      "lon": 79.89195766998999
+    },
+    {
+      "id": "AR48U/R1",
+      "distance_m": 523.4,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.042882183480789,
+      "lon": 79.89129361534893
+    },
+    {
+      "id": "AR48U/P/E",
+      "distance_m": 542.7,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.042095657899713,
+      "lon": 79.89192429806117
+    },
+    {
+      "id": "AR48U/V1",
+      "distance_m": 544.3,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.041741697876991,
+      "lon": 79.8913007530304
+    },
+    {
+      "id": "AR48U/V2",
+      "distance_m": 546.2,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.041760443475231,
+      "lon": 79.89116693495973
+    },
+    {
+      "id": "AR48U/W5",
+      "distance_m": 548.4,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.041901492411574,
+      "lon": 79.89068249365963
+    },
+    {
+      "id": "AR48U/P/H",
+      "distance_m": 554.7,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.041507871174935,
+      "lon": 79.89220228239711
+    },
+    {
+      "id": "AR48U/P/G1",
+      "distance_m": 560.9,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.041519591120943,
+      "lon": 79.89163038358417
+    },
+    {
+      "id": "AR48U/P/J",
+      "distance_m": 561.7,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.041439504536724,
+      "lon": 79.89229839793418
+    },
+    {
+      "id": "AR48U/P/G//1",
+      "distance_m": 562.4,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.041486694710831,
+      "lon": 79.89174365409971
+    },
+    {
+      "id": "AR48U/W4",
+      "distance_m": 566.8,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.041742997925295,
+      "lon": 79.89063211760683
+    },
+    {
+      "id": "AR48U/P/K",
+      "distance_m": 579.2,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.041284094757449,
+      "lon": 79.89224387029239
+    },
+    {
+      "id": "AR48U/P/G2",
+      "distance_m": 586.6,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.041306954982724,
+      "lon": 79.89150439983672
+    },
+    {
+      "id": "AR48U/W1",
+      "distance_m": 598.7,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.041362907501183,
+      "lon": 79.89084526473272
+    },
+    {
+      "id": "AR48U/W2",
+      "distance_m": 602.2,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.04138459482282,
+      "lon": 79.8906795138321
+    },
+    {
+      "id": "AR48U/P/G//2",
+      "distance_m": 603.3,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.041136232355488,
+      "lon": 79.89160127491353
+    },
+    {
+      "id": "AR48U/P/G",
+      "distance_m": 604.0,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.041555073295226,
+      "lon": 79.89203807902503
+    },
+    {
+      "id": "AR48U/P/E/C",
+      "distance_m": 607.1,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.042072476519441,
+      "lon": 79.89250759057298
+    },
+    {
+      "id": "AR48U/X",
+      "distance_m": 608.1,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.041191044686863,
+      "lon": 79.89113467851178
+    },
+    {
+      "id": "AR48U/P/G//3",
+      "distance_m": 616.4,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "geodesic",
+      "lat": 7.041025845372332,
+      "lon": 79.89154791167458
+    },
+    {
+      "id": "AR48U/V",
+      "distance_m": 628.6,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.041685471964905,
+      "lon": 79.8913188609858
+    },
+    {
+      "id": "AR48U/P/L",
+      "distance_m": 655.6,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.041127842973325,
+      "lon": 79.8922224337647
+    },
+    {
+      "id": "AR48U/V3",
+      "distance_m": 663.4,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.041775359956074,
+      "lon": 79.89101644176748
+    },
+    {
+      "id": "AR48U/W",
+      "distance_m": 671.3,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.041322867099689,
+      "lon": 79.89119005575716
+    },
+    {
+      "id": "AR48U/P/G//4",
+      "distance_m": 675.9,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.040962022444099,
+      "lon": 79.89177666254858
+    },
+    {
+      "id": "AR48U/P/G3",
+      "distance_m": 700.4,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.041009890386912,
+      "lon": 79.89135798494796
+    },
+    {
+      "id": "AR48U/Y",
+      "distance_m": 711.7,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.04099094404905,
+      "lon": 79.89103923575728
+    },
+    {
+      "id": "AR48U/W3",
+      "distance_m": 733.0,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.041518871141658,
+      "lon": 79.8906656662549
+    },
+    {
+      "id": "AR48U/W3A",
+      "distance_m": 749.3,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.041545362093811,
+      "lon": 79.89052036090835
+    },
+    {
+      "id": "AR48U/W6",
+      "distance_m": 795.3,
+      "feeder": "F6",
+      "is_tf": false,
+      "method": "path",
+      "lat": 7.04207657200181,
+      "lon": 79.89073387023146
+    }
+  ]
+}

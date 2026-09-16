@@ -1,0 +1,100 @@
+{
+  "ok": true,
+  "n_days": 15,
+  "locked_day": "2026-08-11",
+  "date_from": "2026-08-11",
+  "date_to": "2026-08-25",
+  "source": "LOAD_PROFILE_10_09_2026.xlsx",
+  "days": [
+    {
+      "date": "2026-08-11",
+      "day_type": "weekday",
+      "peak_meas_kw": 202.26,
+      "n_points": 96
+    },
+    {
+      "date": "2026-08-12",
+      "day_type": "weekday",
+      "peak_meas_kw": 211.93,
+      "n_points": 92
+    },
+    {
+      "date": "2026-08-13",
+      "day_type": "weekday",
+      "peak_meas_kw": 204.23,
+      "n_points": 94
+    },
+    {
+      "date": "2026-08-14",
+      "day_type": "weekday",
+      "peak_meas_kw": 198.63,
+      "n_points": 96
+    },
+    {
+      "date": "2026-08-15",
+      "day_type": "weekend",
+      "peak_meas_kw": 194.95,
+      "n_points": 96
+    },
+    {
+      "date": "2026-08-16",
+      "day_type": "weekend",
+      "peak_meas_kw": 180.3,
+      "n_points": 96
+    },
+    {
+      "date": "2026-08-17",
+      "day_type": "weekday",
+      "peak_meas_kw": 183.86,
+      "n_points": 96
+    },
+    {
+      "date": "2026-08-18",
+      "day_type": "weekday",
+      "peak_meas_kw": 187.22,
+      "n_points": 96
+    },
+    {
+      "date": "2026-08-19",
+      "day_type": "weekday",
+      "peak_meas_kw": 196.19,
+      "n_points": 96
+    },
+    {
+      "date": "2026-08-20",
+      "day_type": "weekday",
+      "peak_meas_kw": 183.7,
+      "n_points": 96
+    },
+    {
+      "date": "2026-08-21",
+      "day_type": "weekday",
+      "peak_meas_kw": 189.23,
+      "n_points": 96
+    },
+    {
+      "date": "2026-08-22",
+      "day_type": "weekend",
+      "peak_meas_kw": 191.83,
+      "n_points": 96
+    },
+    {
+      "date": "2026-08-23",
+      "day_type": "weekend",
+      "peak_meas_kw": 182.43,
+      "n_points": 96
+    },
+    {
+      "date": "2026-08-24",
+      "day_type": "weekday",
+      "peak_meas_kw": 180.41,
+      "n_points": 96
+    },
+    {
+      "date": "2026-08-25",
+      "day_type": "weekday",
+      "peak_meas_kw": 176.58,
+      "n_points": 96
+    }
+  ]
+}
