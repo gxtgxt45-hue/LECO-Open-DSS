@@ -1,0 +1,189 @@
+{
+  "ok": true,
+  "locked_day": "2026-06-13",
+  "n_days": 30,
+  "date_from": "2026-06-12",
+  "date_to": "2026-07-11",
+  "days": [
+    {
+      "date": "2026-06-12",
+      "day_type": "weekday",
+      "peak_meas_kw": 164.59,
+      "n_points": 95
+    },
+    {
+      "date": "2026-06-13",
+      "day_type": "weekend",
+      "peak_meas_kw": 163.73,
+      "n_points": 96
+    },
+    {
+      "date": "2026-06-14",
+      "day_type": "weekend",
+      "peak_meas_kw": 183.8,
+      "n_points": 96
+    },
+    {
+      "date": "2026-06-15",
+      "day_type": "weekday",
+      "peak_meas_kw": 175.62,
+      "n_points": 96
+    },
+    {
+      "date": "2026-06-16",
+      "day_type": "weekday",
+      "peak_meas_kw": 172.4,
+      "n_points": 96
+    },
+    {
+      "date": "2026-06-17",
+      "day_type": "weekday",
+      "peak_meas_kw": 178.82,
+      "n_points": 96
+    },
+    {
+      "date": "2026-06-18",
+      "day_type": "weekday",
+      "peak_meas_kw": 183.69,
+      "n_points": 96
+    },
+    {
+      "date": "2026-06-19",
+      "day_type": "weekday",
+      "peak_meas_kw": 175.64,
+      "n_points": 96
+    },
+    {
+      "date": "2026-06-20",
+      "day_type": "weekend",
+      "peak_meas_kw": 178.84,
+      "n_points": 96
+    },
+    {
+      "date": "2026-06-21",
+      "day_type": "weekend",
+      "peak_meas_kw": 172.66,
+      "n_points": 96
+    },
+    {
+      "date": "2026-06-22",
+      "day_type": "weekday",
+      "peak_meas_kw": 159.85,
+      "n_points": 96
+    },
+    {
+      "date": "2026-06-23",
+      "day_type": "weekday",
+      "peak_meas_kw": 198.94,
+      "n_points": 93
+    },
+    {
+      "date": "2026-06-24",
+      "day_type": "weekday",
+      "peak_meas_kw": 206.16,
+      "n_points": 96
+    },
+    {
+      "date": "2026-06-25",
+      "day_type": "weekday",
+      "peak_meas_kw": 190.25,
+      "n_points": 96
+    },
+    {
+      "date": "2026-06-26",
+      "day_type": "weekday",
+      "peak_meas_kw": 190.06,
+      "n_points": 96
+    },
+    {
+      "date": "2026-06-27",
+      "day_type": "weekend",
+      "peak_meas_kw": 186.27,
+      "n_points": 93
+    },
+    {
+      "date": "2026-06-28",
+      "day_type": "weekend",
+      "peak_meas_kw": 162.31,
+      "n_points": 95
+    },
+    {
+      "date": "2026-06-29",
+      "day_type": "weekday",
+      "peak_meas_kw": 159.45,
+      "n_points": 93
+    },
+    {
+      "date": "2026-06-30",
+      "day_type": "weekday",
+      "peak_meas_kw": 188.54,
+      "n_points": 96
+    },
+    {
+      "date": "2026-07-01",
+      "day_type": "weekday",
+      "peak_meas_kw": 185.3,
+      "n_points": 96
+    },
+    {
+      "date": "2026-07-02",
+      "day_type": "weekday",
+      "peak_meas_kw": 184.59,
+      "n_points": 96
+    },
+    {
+      "date": "2026-07-03",
+      "day_type": "weekday",
+      "peak_meas_kw": 197.63,
+      "n_points": 96
+    },
+    {
+      "date": "2026-07-04",
+      "day_type": "weekend",
+      "peak_meas_kw": 164.9,
+      "n_points": 96
+    },
+    {
+      "date": "2026-07-05",
+      "day_type": "weekend",
+      "peak_meas_kw": 193.4,
+      "n_points": 96
+    },
+    {
+      "date": "2026-07-06",
+      "day_type": "weekday",
+      "peak_meas_kw": 197.55,
+      "n_points": 96
+    },
+    {
+      "date": "2026-07-07",
+      "day_type": "weekday",
+      "peak_meas_kw": 191.62,
+      "n_points": 96
+    },
+    {
+      "date": "2026-07-08",
+      "day_type": "weekday",
+      "peak_meas_kw": 202.62,
+      "n_points": 96
+    },
+    {
+      "date": "2026-07-09",
+      "day_type": "weekday",
+      "peak_meas_kw": 193.76,
+      "n_points": 96
+    },
+    {
+      "date": "2026-07-10",
+      "day_type": "weekday",
+      "peak_meas_kw": 184.92,
+      "n_points": 96
+    },
+    {
+      "date": "2026-07-11",
+      "day_type": "weekend",
+      "peak_meas_kw": 159.08,
+      "n_points": 57
+    }
+  ]
+}

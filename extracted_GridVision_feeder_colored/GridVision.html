@@ -1,0 +1,2310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>GridVision — Transformer Network Intelligence</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --bg: #060b14;
+    --panel: #0c1220;
+    --panel2: rgba(22, 32, 52, 0.75);
+    --border: rgba(56, 120, 180, 0.22);
+    --text: #eef4ff;
+    --muted: #8ba3c7;
+    --accent: #22d3ee;
+    --accent2: #6366f1;
+    --glow: rgba(34, 211, 238, 0.35);
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg); color: var(--text);
+    height: 100vh; overflow: hidden;
+  }
+  /* Subtle animated mesh background */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 80% 50% at 10% 20%, rgba(8,145,178,0.12), transparent 50%),
+      radial-gradient(ellipse 60% 40% at 90% 80%, rgba(99,102,241,0.1), transparent 50%),
+      radial-gradient(ellipse 50% 30% at 50% 50%, rgba(34,211,238,0.04), transparent 60%);
+    animation: meshDrift 18s ease-in-out infinite alternate;
+  }
+  @keyframes meshDrift {
+    0% { opacity: 0.85; transform: scale(1); }
+    100% { opacity: 1; transform: scale(1.05); }
+  }
+
+  #app {
+    display: grid; grid-template-rows: 56px 1fr; height: 100vh;
+    position: relative; z-index: 1;
+  }
+
+  /* ── Header ── */
+  header {
+    background: linear-gradient(180deg, rgba(15,23,42,0.95), rgba(12,18,32,0.9));
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 20px; gap: 16px; z-index: 1000;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.35);
+  }
+  .logo {
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 800; font-size: 16px; letter-spacing: -0.02em;
+    background: linear-gradient(90deg, #22d3ee, #a5b4fc, #22d3ee);
+    background-size: 200% auto;
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmerText 4s linear infinite;
+  }
+  @keyframes shimmerText {
+    0% { background-position: 0% center; }
+    100% { background-position: 200% center; }
+  }
+  .logo-icon {
+    width: 32px; height: 32px; border-radius: 9px;
+    background: linear-gradient(135deg, #0891b2, #6366f1);
+    display: flex; align-items: center; justify-content: center; font-size: 15px;
+    box-shadow: 0 0 16px rgba(34,211,238,0.4), 0 0 32px rgba(99,102,241,0.2);
+    animation: iconPulse 2.5s ease-in-out infinite;
+    -webkit-text-fill-color: initial;
+  }
+  @keyframes iconPulse {
+    0%, 100% { box-shadow: 0 0 12px rgba(34,211,238,0.35), 0 0 24px rgba(99,102,241,0.15); transform: scale(1); }
+    50% { box-shadow: 0 0 20px rgba(34,211,238,0.55), 0 0 40px rgba(99,102,241,0.3); transform: scale(1.05); }
+  }
+  .status-pill {
+    margin-left: auto; font-size: 11px; font-weight: 600; color: var(--muted);
+    background: rgba(26,35,50,0.8); padding: 6px 14px; border-radius: 20px;
+    border: 1px solid var(--border);
+    transition: all 0.35s ease;
+  }
+  .status-pill.live {
+    color: #34d399; border-color: rgba(52,211,153,0.4);
+    box-shadow: 0 0 12px rgba(52,211,153,0.25);
+    animation: liveGlow 2s ease-in-out infinite;
+  }
+  @keyframes liveGlow {
+    0%, 100% { box-shadow: 0 0 8px rgba(52,211,153,0.2); }
+    50% { box-shadow: 0 0 18px rgba(52,211,153,0.4); }
+  }
+
+  /* ── Layout ── */
+  #main { display: grid; grid-template-columns: 280px 1fr 280px; height: 100%; min-height: 0; }
+  .sidebar {
+    background: linear-gradient(180deg, rgba(12,18,32,0.92), rgba(8,12,22,0.95));
+    border-right: 1px solid var(--border);
+    overflow-y: auto; overflow-x: hidden;
+    padding: 12px 12px 16px 12px;
+    display: flex; flex-direction: column; gap: 10px;
+    backdrop-filter: blur(8px);
+    min-height: 0;
+  }
+  .sidebar.right { border-right: none; border-left: 1px solid var(--border); }
+  .sidebar::-webkit-scrollbar { width: 5px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb {
+    background: rgba(34,211,238,0.25); border-radius: 4px;
+  }
+
+  /* ── Cards with entrance animation ── */
+  .card {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 11px 12px;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    animation: cardIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .card:nth-child(1) { animation-delay: 0.05s; }
+  .card:nth-child(2) { animation-delay: 0.12s; }
+  .card:nth-child(3) { animation-delay: 0.19s; }
+  .card:nth-child(4) { animation-delay: 0.26s; }
+  .card:nth-child(5) { animation-delay: 0.33s; }
+  .card:nth-child(6) { animation-delay: 0.4s; }
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(16px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(34,211,238,0.4), transparent);
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .card:hover {
+    border-color: rgba(34,211,238,0.35);
+    box-shadow: 0 8px 28px rgba(0,0,0,0.3), 0 0 20px rgba(34,211,238,0.06);
+    transform: translateY(-2px);
+  }
+  .card:hover::before { opacity: 1; }
+  .card h3 {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 1.4px;
+    color: var(--muted); margin-bottom: 8px; font-weight: 700;
+  }
+  /* Transformer + System Log always fully visible */
+  .card.card-tx, .card.card-log {
+    flex-shrink: 0;
+    border-color: rgba(59,130,246,0.35);
+    background: rgba(22, 32, 52, 0.92);
+  }
+  .card.card-log {
+    flex: 1 1 auto;
+    min-height: 110px;
+    display: flex;
+    flex-direction: column;
+  }
+  .card.card-log .log {
+    flex: 1;
+    max-height: none;
+    min-height: 90px;
+  }
+  #txInfo {
+    min-height: 28px;
+    padding: 4px 0 4px 0;
+  }
+
+  /* ── Drop zones ── */
+  .drop-zone {
+    border: 2px dashed rgba(56,120,180,0.3);
+    border-radius: 10px;
+    padding: 10px 8px; text-align: center; cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    position: relative;
+    background: rgba(6,11,20,0.4);
+  }
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: #22d3ee;
+    background: rgba(34,211,238,0.08);
+    box-shadow: 0 0 24px rgba(34,211,238,0.12), inset 0 0 20px rgba(34,211,238,0.04);
+    transform: scale(1.02);
+  }
+  .drop-zone.has-file {
+    border-color: #34d399; border-style: solid;
+    background: rgba(52,211,153,0.06);
+    box-shadow: 0 0 16px rgba(52,211,153,0.1);
+  }
+  .drop-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .drop-zone .icon {
+    font-size: 20px; margin-bottom: 3px;
+    display: inline-block;
+    transition: transform 0.3s ease;
+  }
+  .drop-zone:hover .icon { transform: scale(1.15) translateY(-2px); }
+  .drop-zone .label { font-size: 12px; font-weight: 700; }
+  .drop-zone .hint { font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .drop-zone .fname { font-size: 10px; color: #34d399; margin-top: 4px; word-break: break-all; font-weight: 600; }
+
+  /* ── Button ── */
+  .btn {
+    width: 100%; padding: 10px; border: none; border-radius: 10px;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+    background: linear-gradient(135deg, #0891b2, #4f46e5, #0891b2);
+    background-size: 200% 200%;
+    color: white;
+    position: relative; overflow: hidden;
+    transition: all 0.3s ease;
+    animation: btnGradient 6s ease infinite;
+  }
+  @keyframes btnGradient {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  .btn::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.15) 50%, transparent 60%);
+    background-size: 200% 100%;
+    animation: btnShine 3s ease-in-out infinite;
+  }
+  @keyframes btnShine {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  .btn:hover:not(:disabled) {
+    box-shadow: 0 6px 28px rgba(79,70,229,0.45), 0 0 20px rgba(34,211,238,0.2);
+    transform: translateY(-1px) scale(1.01);
+  }
+  .btn:active:not(:disabled) { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; animation: none; }
+  .btn:disabled::after { animation: none; }
+
+  /* ── Stats ── */
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat {
+    background: rgba(6,11,20,0.6);
+    border-radius: 10px; padding: 10px 8px; text-align: center;
+    border: 1px solid rgba(34,211,238,0.08);
+    transition: all 0.3s ease;
+  }
+  .stat:hover {
+    border-color: rgba(34,211,238,0.3);
+    box-shadow: 0 0 16px rgba(34,211,238,0.1);
+    transform: scale(1.04);
+  }
+  .stat .num {
+    font-size: 20px; font-weight: 800; color: #22d3ee;
+    text-shadow: 0 0 12px rgba(34,211,238,0.35);
+    transition: all 0.3s;
+  }
+  .stat .lbl { font-size: 9px; color: var(--muted); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+
+  select {
+    width: 100%; padding: 10px 12px; border-radius: 10px;
+    border: 1px solid var(--border);
+    background: rgba(6,11,20,0.7); color: var(--text); font-size: 12px; outline: none;
+    transition: border-color 0.25s, box-shadow 0.25s;
+    cursor: pointer;
+  }
+  select:focus {
+    border-color: #22d3ee;
+    box-shadow: 0 0 0 3px rgba(34,211,238,0.15);
+  }
+  .vscale { display: flex; flex-direction: column; gap: 6px; }
+  .vscale-row {
+    display: flex; align-items: center; gap: 8px; font-size: 11px;
+    padding: 3px 0; transition: transform 0.2s;
+  }
+  .vscale-row:hover { transform: translateX(3px); }
+  .vdot {
+    width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 0 6px currentColor;
+  }
+
+  .log {
+    background: rgba(2,6,23,0.8); border-radius: 10px; padding: 10px;
+    font-family: ui-monospace, 'Cascadia Code', monospace; font-size: 10px;
+    color: #64748b; max-height: 120px; overflow-y: auto; white-space: pre-wrap;
+    border: 1px solid var(--border);
+  }
+  .log .ok { color: #34d399; } .log .err { color: #f87171; } .log .info { color: #22d3ee; }
+
+  /* ── Map ── */
+  #map-wrap { position: relative; min-height: 0; height: 100%; }
+  #map { height: 100%; width: 100%; }
+  #loading {
+    position: absolute; inset: 0;
+    background: rgba(6,11,20,0.85);
+    backdrop-filter: blur(6px);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 2000; gap: 14px;
+  }
+  #loading.hidden { display: none; }
+  .spinner {
+    width: 42px; height: 42px;
+    border: 3px solid rgba(30,41,59,0.6);
+    border-top-color: #22d3ee;
+    border-right-color: #6366f1;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    box-shadow: 0 0 20px rgba(34,211,238,0.25);
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .leaflet-popup-content-wrapper {
+    background: #141e30; color: #f1f5f9; border-radius: 12px;
+    border: 1px solid rgba(34,211,238,0.2);
+    box-shadow: 0 12px 36px rgba(0,0,0,0.5), 0 0 20px rgba(34,211,238,0.08);
+  }
+  .leaflet-popup-tip { background: #141e30; }
+  .leaflet-popup-content { margin: 12px 14px; font-size: 12px; line-height: 1.5; }
+  .leaflet-control-layers, .leaflet-bar a {
+    background: #141e30 !important; color: #e2e8f0 !important;
+    border-color: rgba(34,211,238,0.2) !important;
+  }
+
+  /* ── Voltage callouts ── */
+  /* Compact map shape: min / max / unbalance only */
+  .v-callout {
+    position: relative;
+    background: linear-gradient(160deg, #0f172a, #0c1525);
+    border: 2px solid #22d3ee;
+    border-radius: 10px;
+    padding: 6px 10px;
+    min-width: 100px;
+    text-align: left;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.55), 0 0 12px rgba(34,211,238,0.15);
+    cursor: pointer;
+    line-height: 1.3;
+    user-select: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .v-callout:hover { transform: scale(1.05); box-shadow: 0 8px 28px rgba(0,0,0,0.6), 0 0 18px rgba(34,211,238,0.25); }
+  .v-callout:active { cursor: grabbing; }
+  .v-callout .v-name { font-size: 11px; font-weight: 800; color: #fff; margin-bottom: 2px; }
+  .v-callout .v-row {
+    font-size: 11px; color: #e2e8f0; font-weight: 600;
+    display: flex; justify-content: space-between; gap: 10px;
+    padding: 1px 0;
+  }
+  .v-callout .v-row .lbl { color: #94a3b8; font-weight: 600; }
+  .v-callout .v-hint {
+    font-size: 9px; color: #64748b; margin-top: 3px; font-weight: 600;
+  }
+  .v-callout.v-low   { border-color: #ef4444; }
+  .v-callout.v-warn  { border-color: #f59e0b; }
+  .v-callout.v-ok    { border-color: #10b981; }
+  .v-callout.v-high  { border-color: #f59e0b; }
+  .v-callout.v-vhigh { border-color: #ef4444; }
+  .v-callout .v-out {
+    color: #f87171 !important;
+    font-weight: 800;
+    text-shadow: 0 0 8px rgba(248,113,113,0.35);
+  }
+  /* Click popup — full phase detail */
+  .v-popup {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    min-width: 160px;
+    color: #e2e8f0;
+  }
+  .v-popup .vp-name { font-size: 13px; font-weight: 800; color: #fff; margin-bottom: 2px; }
+  .v-popup .vp-when { font-size: 10px; color: #94a3b8; margin-bottom: 6px; }
+  .v-popup .vp-avg { font-size: 18px; font-weight: 800; color: #22d3ee; margin: 4px 0 6px; }
+  .v-popup .vp-phase {
+    font-size: 12px; display: flex; justify-content: space-between;
+    padding: 3px 0; border-top: 1px solid rgba(148,163,184,0.15);
+  }
+  .v-popup .vp-phase .ph-lbl { color: #94a3b8; }
+  .v-popup .vp-mm { font-size: 11px; color: #94a3b8; margin-top: 6px; }
+  .v-popup .vp-ub { font-size: 11px; color: #a78bfa; margin-top: 2px; font-weight: 600; }
+  .v-popup .v-out { color: #f87171 !important; font-weight: 800; }
+  .v-range {
+    font-size: 11px; color: #94a3b8; margin-top: 8px; line-height: 1.4;
+    padding: 6px 8px; border-radius: 8px;
+    background: rgba(6,11,20,0.5); border: 1px solid rgba(34,211,238,0.1);
+  }
+  .v-range strong { color: #22d3ee; font-weight: 700; }
+  .v-active {
+    font-size: 11px; color: #e2e8f0; margin-top: 6px; font-weight: 600;
+  }
+  .v-active span { color: #22d3ee; }
+  .time-slider-wrap { margin-top: 10px; }
+  .time-slider-wrap input[type=range] {
+    width: 100%;
+    height: 6px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: linear-gradient(90deg, #0e7490, #22d3ee, #6366f1);
+    border-radius: 4px;
+    outline: none;
+    cursor: pointer;
+  }
+  .time-slider-wrap input[type=range]:disabled {
+    opacity: 0.35; cursor: not-allowed;
+  }
+  .time-slider-wrap input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #22d3ee;
+    box-shadow: 0 0 8px rgba(34,211,238,0.5);
+    cursor: pointer;
+  }
+  .time-slider-wrap input[type=range]::-moz-range-thumb {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #22d3ee;
+    cursor: pointer;
+  }
+  .time-slider-labels {
+    display: flex; justify-content: space-between;
+    font-size: 10px; color: #64748b; margin-top: 4px; font-weight: 600;
+  }
+  .time-slider-labels #timeSliderLabel {
+    color: #22d3ee; font-weight: 700; min-width: 64px; text-align: center;
+  }
+  /* Street View control */
+  .sv-control {
+    background: rgba(15, 23, 42, 0.92);
+    border: 1px solid rgba(34, 211, 238, 0.35);
+    border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.45);
+    overflow: hidden;
+  }
+  .sv-control a {
+    display: block;
+    color: #e2e8f0;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 8px 12px;
+    text-decoration: none;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(148,163,184,0.12);
+    white-space: nowrap;
+  }
+  .sv-control a:last-child { border-bottom: none; }
+  .sv-control a:hover { background: rgba(34, 211, 238, 0.15); color: #22d3ee; }
+  .sv-control a.active {
+    background: rgba(34, 211, 238, 0.25);
+    color: #22d3ee;
+  }
+  .sv-pick-cursor { cursor: crosshair !important; }
+  .pole-popup { font-family: 'Segoe UI', system-ui, sans-serif; min-width: 140px; }
+  .pole-popup .pp-title { font-size: 13px; font-weight: 800; color: #0f172a; margin-bottom: 2px; }
+  .pole-popup .pp-desc { font-size: 11px; color: #64748b; margin-bottom: 4px; }
+  .pole-popup .pp-coords { font-size: 10px; color: #94a3b8; margin-bottom: 8px; font-family: ui-monospace, monospace; }
+  .pole-popup .pp-sv {
+    display: inline-block;
+    background: linear-gradient(135deg, #0e7490, #22d3ee);
+    color: #0f172a !important;
+    font-size: 12px; font-weight: 800;
+    padding: 6px 12px; border-radius: 8px;
+    text-decoration: none !important;
+    box-shadow: 0 2px 8px rgba(34,211,238,0.35);
+  }
+  .pole-popup .pp-sv:hover { filter: brightness(1.08); }
+
+  /* ── Pole tags ── */
+  .pole-tag {
+    background: #ffffff;
+    border: 1.5px solid #111827;
+    border-radius: 5px;
+    padding: 1px 5px;
+    font-size: 10px;
+    font-weight: 800;
+    color: #000000;
+    white-space: nowrap;
+    pointer-events: none;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+  }
+  .pole-tag.tx {
+    border-color: #1d4ed8;
+    background: #ffffff;
+    color: #1d4ed8;
+    font-size: 13px;
+    font-weight: 900;
+    padding: 3px 9px;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(29,78,216,0.5), 0 0 8px rgba(29,78,216,0.2);
+  }
+  .pole-tag.hv { border-color: #c2410c; background: #fff7ed; color: #dc2626; }
+  .pole-tag.lv { border-color: #15803d; background: #f0fdf4; color: #000; }
+
+  .tx-info-name {
+    font-size: 18px;
+    font-weight: 800;
+    color: #3b82f6;
+    letter-spacing: 0.02em;
+    line-height: 1.3;
+    word-break: break-word;
+    text-shadow: 0 0 16px rgba(59,130,246,0.3);
+  }
+  .tx-info-sub { font-size: 12px; color: #94a3b8; margin-top: 6px; line-height: 1.45; }
+  .chk-row {
+    display: flex; align-items: center; gap: 8px; font-size: 12px;
+    margin-top: 7px; cursor: pointer;
+    transition: color 0.2s;
+  }
+  .chk-row:hover { color: #22d3ee; }
+  .chk-row input { accent-color: #22d3ee; }
+  .hint-box {
+    font-size: 11px; color: var(--muted);
+    background: rgba(6,11,20,0.5);
+    border-radius: 10px; padding: 10px; margin-top: 10px; line-height: 1.45;
+    border: 1px solid rgba(34,211,238,0.08);
+  }
+
+  /* Feeder-colored pole tags */
+  .pole-tag.feeder {
+    border-width: 1.5px;
+    font-weight: 700;
+  }
+  .feeder-legend-row {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; margin: 4px 0; color: #e2e8f0;
+  }
+  .feeder-legend-row .fdot {
+    width: 12px; height: 12px; border-radius: 50%;
+    flex-shrink: 0; border: 1.5px solid rgba(255,255,255,0.25);
+  }
+  .feeder-legend-row .fcount {
+    margin-left: auto; color: #64748b; font-size: 10px;
+  }
+
+  /* Solar table */
+  table.solar-table {
+    width: 100%; border-collapse: collapse; font-size: 11px;
+  }
+  table.solar-table thead th {
+    position: sticky; top: 0; background: rgba(12,18,32,0.98);
+    color: var(--muted); text-align: left; padding: 6px 8px;
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px;
+    border-bottom: 1px solid var(--border); z-index: 1;
+  }
+  table.solar-table td {
+    padding: 5px 8px; border-bottom: 1px solid rgba(56,120,180,0.12);
+    color: #e2e8f0; white-space: nowrap;
+  }
+  table.solar-table td:nth-child(2) { text-align: right; color: #1d4ed8; font-weight: 800; }
+  table.solar-table td:nth-child(3) { text-align: right; }
+  .cap-chip {
+    display: inline-block; background: #e5e7eb; color: #0f172a;
+    font-weight: 800; padding: 1px 7px; border-radius: 5px;
+  }
+  table.solar-table tr:hover td { background: rgba(34,211,238,0.06); }
+  table.solar-table tr.unmatched td:first-child::after {
+    content: ' ⚠'; color: #f59e0b; font-size: 9px;
+  }
+
+  /* Solar capacity marker labels on map — golden pill badge with a pointer to the pole */
+  .solar-tag {
+    position: absolute;
+    left: 0; top: 0;
+    transform: translate(-50%, calc(-100% - 7px));
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg, #fcd34d, #d97706);
+    border: 1.6px solid #92400e;
+    color: #1f2937;
+    font-size: 10.5px;
+    font-weight: 800;
+    padding: 3px 10px;
+    border-radius: 13px;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.45);
+    pointer-events: none;
+    line-height: 1;
+  }
+  .solar-tag::after {
+    content: '';
+    position: absolute;
+    left: 50%; bottom: -7px;
+    transform: translateX(-50%);
+    border-width: 7px 5px 0 5px;
+    border-style: solid;
+    border-color: #92400e transparent transparent transparent;
+  }
+
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="logo"><div class="logo-icon">⚡</div> GridVision</div>
+    <div class="status-pill" id="statusPill">Awaiting files</div>
+  </header>
+
+  <div id="main">
+    <div class="sidebar">
+      <div class="card">
+        <h3>Data Sources</h3>
+        <div class="drop-zone" id="netZone" style="margin-bottom:8px">
+          <input type="file" id="netFile" accept=".kmz,.kml,.zip"/>
+          <div class="icon">🗺️</div>
+          <div class="label">Network File</div>
+          <div class="hint">KMZ · KML · ZIP</div>
+          <div class="fname" id="netFname"></div>
+        </div>
+        <div class="drop-zone" id="xlsZone">
+          <input type="file" id="xlsFile" accept=".xlsx,.xls"/>
+          <div class="icon">📊</div>
+          <div class="label">Load Profile</div>
+          <div class="hint">Excel .xlsx — optional (voltage only)</div>
+          <div class="fname" id="xlsFname"></div>
+        </div>
+        <div class="drop-zone" id="feederZone" style="margin-top:8px">
+          <input type="file" id="feederFile" accept=".xlsx,.xls"/>
+          <div class="icon">🔀</div>
+          <div class="label">Feeder Survey</div>
+          <div class="hint">Poles Excel — feeder IDs &amp; sequence</div>
+          <div class="fname" id="feederFname"></div>
+        </div>
+        <div class="drop-zone" id="solarZone" style="margin-top:8px">
+          <input type="file" id="solarFile" accept=".xlsx,.xls"/>
+          <div class="icon">☀️</div>
+          <div class="label">Solar Report</div>
+          <div class="hint">Pole-wise solar &amp; inverter capacity</div>
+          <div class="fname" id="solarFname"></div>
+        </div>
+        <button class="btn" id="processBtn" disabled style="margin-top:10px">Process & Visualize</button>
+      </div>
+
+      <div class="card">
+        <h3>Network Stats</h3>
+        <div class="stats">
+          <div class="stat"><div class="num" id="sTx">—</div><div class="lbl">Transformer</div></div>
+          <div class="stat"><div class="num" id="sHv">—</div><div class="lbl">HV Poles</div></div>
+          <div class="stat"><div class="num" id="sLv">—</div><div class="lbl">LV Poles</div></div>
+          <div class="stat"><div class="num" id="sLn">—</div><div class="lbl">LV Lines</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Display</h3>
+        <label class="chk-row"><input type="checkbox" id="chkNames" checked/> Show pole numbers</label>
+        <label class="chk-row"><input type="checkbox" id="chkVolt" checked/> Show voltage labels</label>
+        <label class="chk-row"><input type="checkbox" id="chkSolar" checked/> Show solar/inverter capacity</label>
+      </div>
+
+      <div class="card card-tx">
+        <h3>Transformer</h3>
+        <div id="txInfo"><div class="tx-info-sub">Upload network file</div></div>
+      </div>
+    </div>
+
+    <div id="map-wrap">
+      <div id="map"></div>
+      <div id="loading" class="hidden">
+        <div class="spinner"></div>
+        <div style="color:#22d3ee;font-weight:600;font-size:13px">Processing…</div>
+      </div>
+    </div>
+
+    <div class="sidebar right">
+      <div class="card">
+        <h3>Voltage Date</h3>
+        <select id="dateSel" disabled><option value="">Load profile first</option></select>
+        <h3 style="margin-top:12px">Voltage Time</h3>
+        <select id="timeSel" disabled><option value="all">All day</option></select>
+        <div class="time-slider-wrap" id="timeSliderWrap">
+          <input type="range" id="timeSlider" min="0" max="96" value="0" step="1" disabled/>
+          <div class="time-slider-labels">
+            <span>All day</span>
+            <span id="timeSliderLabel">—</span>
+            <span>23:45</span>
+          </div>
+        </div>
+        <div class="v-active" id="vActive">Select date &amp; time to view Phase A / B / C</div>
+        <div id="vRange" class="v-range" style="display:none"></div>
+        <div id="vCount" style="margin-top:7px;font-size:11px;color:var(--muted)"></div>
+      </div>
+
+      <div class="card">
+        <h3>Voltage Scale</h3>
+        <div class="vscale">
+          <div class="vscale-row"><div class="vdot" style="background:#ef4444"></div> &lt; 216.2 V — Low</div>
+          <div class="vscale-row"><div class="vdot" style="background:#f59e0b"></div> 216.2 – 220 V</div>
+          <div class="vscale-row"><div class="vdot" style="background:#10b981"></div> 220 – 240 V — Normal</div>
+          <div class="vscale-row"><div class="vdot" style="background:#f59e0b"></div> 240 – 243.8 V</div>
+          <div class="vscale-row"><div class="vdot" style="background:#ef4444"></div> &gt; 243.8 V — High</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Layers</h3>
+        <div class="vscale">
+          <div class="vscale-row"><div class="vdot" style="background:#f43f5e"></div> Transformer</div>
+          <div class="vscale-row"><div class="vdot" style="background:#fb923c"></div> HV Poles</div>
+          <div class="vscale-row"><div class="vdot" style="background:#4ade80"></div> LV Poles (no feeder)</div>
+          <div class="vscale-row"><div class="vdot" style="background:#38bdf8;border-radius:2px;height:4px;width:14px"></div> LV Lines</div>
+          <div class="vscale-row"><div class="vdot" style="background:#1d4ed8"></div> Solar Capacity (kW)</div>
+          <div class="vscale-row"><div class="vdot" style="background:#0f172a;border:1px solid #64748b"></div> Inverter Capacity (kW)</div>
+        </div>
+      </div>
+
+      <div class="card" id="solarTableCard" style="display:none">
+        <h3>Solar &amp; Inverter Capacity <span id="solarTxLabel" style="color:#22d3ee"></span></h3>
+        <div id="solarTableWrap" style="max-height:260px; overflow-y:auto; border-radius:8px; border:1px solid var(--border)">
+          <table class="solar-table">
+            <thead>
+              <tr><th>Pole</th><th>Solar (kW)</th><th>Inv (kW)</th></tr>
+            </thead>
+            <tbody id="solarTableBody"></tbody>
+          </table>
+        </div>
+        <div id="solarTotals" style="font-size:11px; color:var(--muted); margin-top:8px"></div>
+      </div>
+
+      <div class="card" id="feederLegendCard" style="display:none">
+        <h3>Feeders</h3>
+        <div id="feederLegend"></div>
+        <div style="font-size:10px;color:#64748b;margin-top:8px;line-height:1.4">
+          Each main feeder and its spur lines share one colour.
+        </div>
+      </div>
+
+      <div class="card card-log">
+        <h3>System Log</h3>
+        <div class="log" id="log">GridVision ready.
+Upload a network file to view the map. Load profile is optional for voltage overlays.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let map, layers = {}, allFeatures = {}, voltageData = {}, availableDates = [];
+let nameMarkers = [], voltLabelMarkers = [];
+// Remember user-dragged positions: poleName -> {lat, lon}
+const labelPositions = {};
+
+/* ── Feeder colour system ──
+ * Main feeder and all its spurs share the same colour.
+ * Palette cycles if more than 10 main feeders.
+ */
+const FEEDER_PALETTE = [
+  { fill: '#ef4444', stroke: '#991b1b', name: 'Red' },       // 1
+  { fill: '#f59e0b', stroke: '#b45309', name: 'Amber' },     // 2
+  { fill: '#84cc16', stroke: '#4d7c0f', name: 'Lime' },      // 3 — distinct from cyan
+  { fill: '#2563eb', stroke: '#1e3a8a', name: 'Blue' },      // 4 — deeper blue
+  { fill: '#a855f7', stroke: '#7e22ce', name: 'Purple' },    // 5
+  { fill: '#ec4899', stroke: '#be185d', name: 'Pink' },      // 6
+  { fill: '#06b6d4', stroke: '#0e7490', name: 'Cyan' },      // 7 — was teal (looked like green)
+  { fill: '#eab308', stroke: '#a16207', name: 'Yellow' },    // 8
+  { fill: '#f97316', stroke: '#c2410c', name: 'Orange' },    // 9
+  { fill: '#f43f5e', stroke: '#9f1239', name: 'Rose' },      // 10
+];
+let feederMap = {};        // poleId -> { main, feederId, seq, conductor }
+let feederColors = {};     // mainFeederId -> { fill, stroke, name }
+let feederPoleCounts = {}; // mainFeederId -> unique pole count
+
+let solarByPole = {};      // normalized poleName -> { pole, capacity, inv, accounts }
+let solarMarkers = [];     // map label markers for solar tags
+
+
+function log(msg, type='') {
+  const el = document.getElementById('log');
+  const cls = type === 'ok' ? 'ok' : type === 'err' ? 'err' : type === 'info' ? 'info' : '';
+  el.innerHTML += (cls ? `<span class="${cls}">${msg}</span>` : msg) + '\n';
+  el.scrollTop = el.scrollHeight;
+}
+function setStatus(t, live=false) {
+  const p = document.getElementById('statusPill');
+  p.textContent = t; p.classList.toggle('live', live);
+}
+function showLoading(s) {
+  document.getElementById('loading').classList.toggle('hidden', !s);
+}
+
+
+/** Extract comparable transformer key from a filename.
+ *  Examples:
+ *    BZ0109.zip, BZ0109.kmz, BZ0109_Network.zip → BZ0109
+ *    BZ0109LP.xlsx, BZ0109_LoadProfile.xlsx, BZ0109-LP.xlsx → BZ0109
+ *    Sample_BZ0018_Network.zip → BZ0018
+ */
+function extractTxKey(filename) {
+  if (!filename) return null;
+  let base = filename.replace(/^.*[\\\\/]/, ''); // strip path
+  base = base.replace(/\.[^.]+$/, ''); // strip extension
+  // Prefer explicit transformer-style tokens: letters+digits (e.g. BZ0109, TX123)
+  const tokens = base.toUpperCase().match(/[A-Z]{1,6}\d{2,8}/g);
+  if (tokens && tokens.length) {
+    // Prefer token that is not only digits-heavy from LP suffix noise — first strong match
+    return tokens[0];
+  }
+  // Fallback: strip common suffixes and non-alnum
+  let cleaned = base.toUpperCase()
+    .replace(/[_-\s]?(LOAD[_\s-]?PROFILE|LOADPROFILE|LP|NETWORK|NET|POLES|LINES|SAMPLE)+/gi, '')
+    .replace(/[^A-Z0-9]/g, '');
+  return cleaned || null;
+}
+
+function filesMatch(netName, xlsName) {
+  // Load profile is optional — only enforce when both are provided
+  if (!netName || !xlsName) return { ok: true };
+  const a = extractTxKey(netName);
+  const b = extractTxKey(xlsName);
+  if (!a || !b) {
+    return {
+      ok: false,
+      message: 'Could not detect transformer ID in file names.\\n' +
+        'Network: ' + netName + ' → ' + (a || '?') + '\\n' +
+        'Load Profile: ' + xlsName + ' → ' + (b || '?') + '\\n' +
+        'Please use matching names (e.g. BZ0109.zip and BZ0109LP.xlsx).'
+    };
+  }
+  if (a !== b) {
+    return {
+      ok: false,
+      message: 'File name mismatch.\\n\\n' +
+        'Network file: \"' + netName + '\" (detected: ' + a + ')\\n' +
+        'Load Profile: \"' + xlsName + '\" (detected: ' + b + ')\\n\\n' +
+        'Both files must belong to the same transformer.\\n' +
+        'Example: BZ0109.zip with BZ0109LP.xlsx'
+    };
+  }
+  return { ok: true, key: a };
+}
+
+
+function initMap() {
+  map = L.map('map', {
+    zoomControl: true,
+    minZoom: 4,          // zoom out further (country / region)
+    maxZoom: 22,         // zoom in closer (pole-level detail)
+    zoomSnap: 0.25,      // smoother intermediate zoom steps
+    zoomDelta: 0.5,
+    wheelPxPerZoomLevel: 80
+  }).setView([7.05, 79.89], 14);
+  // maxNativeZoom = real tile limit; maxZoom allows overzoom beyond tiles
+  const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 22, maxNativeZoom: 19, attribution: '© OpenStreetMap'
+  }).addTo(map);
+  const dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    maxZoom: 22, maxNativeZoom: 20, attribution: '© CARTO'
+  });
+  const sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 22, maxNativeZoom: 19, attribution: 'Esri'
+  });
+
+  layers.transformer = L.layerGroup().addTo(map);
+  layers.hv = L.layerGroup().addTo(map);
+  layers.lvPoles = L.layerGroup().addTo(map);
+  layers.lvLines = L.layerGroup().addTo(map);
+  layers.voltage = L.layerGroup().addTo(map);
+  layers.names = L.layerGroup().addTo(map);
+  layers.solar = L.layerGroup().addTo(map);
+
+  L.control.layers(
+    { 'Street': osm, 'Dark': dark, 'Satellite': sat },
+    {
+      'Transformer': layers.transformer, 'HV Poles': layers.hv,
+      'LV Poles': layers.lvPoles, 'LV Lines': layers.lvLines,
+      'Voltage': layers.voltage, 'Pole Numbers': layers.names,
+      'Solar/Inverter Capacity': layers.solar
+    }
+  ).addTo(map);
+
+  addStreetViewControl();
+}
+
+/** Open Google Street View at lat/lng (new tab) */
+function openStreetView(lat, lng) {
+  const url = 'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=' +
+    lat.toFixed(6) + ',' + lng.toFixed(6);
+  window.open(url, '_blank', 'noopener,noreferrer');
+  log('Street View opened at ' + lat.toFixed(5) + ', ' + lng.toFixed(5), 'info');
+}
+
+function addStreetViewControl() {
+  let pickMode = false;
+  const SvControl = L.Control.extend({
+    options: { position: 'topleft' },
+    onAdd: function() {
+      const div = L.DomUtil.create('div', 'sv-control leaflet-bar');
+      const btnCenter = L.DomUtil.create('a', '', div);
+      btnCenter.href = '#';
+      btnCenter.title = 'Open Street View at map center';
+      btnCenter.innerHTML = '🛣 Street View (center)';
+      const btnPick = L.DomUtil.create('a', '', div);
+      btnPick.href = '#';
+      btnPick.title = 'Click map to open Street View at that point';
+      btnPick.innerHTML = '📍 Pick location';
+      L.DomEvent.disableClickPropagation(div);
+      L.DomEvent.on(btnCenter, 'click', function(e) {
+        L.DomEvent.preventDefault(e);
+        const c = map.getCenter();
+        openStreetView(c.lat, c.lng);
+      });
+      L.DomEvent.on(btnPick, 'click', function(e) {
+        L.DomEvent.preventDefault(e);
+        pickMode = !pickMode;
+        btnPick.classList.toggle('active', pickMode);
+        const el = map.getContainer();
+        if (pickMode) {
+          L.DomUtil.addClass(el, 'sv-pick-cursor');
+          log('Street View pick mode: click the map', 'info');
+        } else {
+          L.DomUtil.removeClass(el, 'sv-pick-cursor');
+        }
+      });
+      map.on('click', function(ev) {
+        if (!pickMode) return;
+        openStreetView(ev.latlng.lat, ev.latlng.lng);
+        pickMode = false;
+        btnPick.classList.remove('active');
+        L.DomUtil.removeClass(map.getContainer(), 'sv-pick-cursor');
+      });
+      return div;
+    }
+  });
+  new SvControl().addTo(map);
+}
+
+function parseCoords(txt) {
+  const out = [];
+  txt.trim().split(/\s+/).forEach(p => {
+    const [lon, lat] = p.split(',').map(Number);
+    if (!isNaN(lat) && !isNaN(lon)) out.push([lat, lon]);
+  });
+  return out;
+}
+
+function extractKML(text, src) {
+  const doc = new DOMParser().parseFromString(text, 'text/xml');
+  const pts = [], lns = [];
+  doc.querySelectorAll('Placemark').forEach(pm => {
+    const nameEl = pm.querySelector('name');
+    const name = nameEl ? nameEl.textContent.trim() : 'Unnamed';
+    let desc = '';
+    const descEl = pm.querySelector('description');
+    if (descEl) {
+      const html = descEl.textContent || '';
+      const fields = [];
+      const re = /<td>([A-Za-z0-9_]+)<\/td>\s*<td>([^<]*)<\/td>/gi;
+      let m;
+      while ((m = re.exec(html))) {
+        const v = m[2].trim();
+        if (v && !['&lt;Null&gt;','<Null>','Null',''].includes(v))
+          fields.push(`<b>${m[1]}</b>: ${v}`);
+      }
+      desc = fields.slice(0, 10).join('<br>');
+    }
+    const pt = pm.querySelector('Point coordinates');
+    const ln = pm.querySelector('LineString coordinates');
+    if (pt) {
+      const c = parseCoords(pt.textContent);
+      if (c.length) pts.push({ name, lat: c[0][0], lon: c[0][1], desc, source: src });
+    } else if (ln) {
+      const c = parseCoords(ln.textContent);
+      if (c.length >= 2) lns.push({ name, coords: c, source: src });
+    }
+  });
+  return { pts, lns };
+}
+
+/** Deduplicate near-identical points (same name or within ~1m) */
+function dedupePoints(points) {
+  const kept = [];
+  for (const p of points) {
+    const dup = kept.find(k =>
+      k.name === p.name ||
+      (Math.abs(k.lat - p.lat) < 0.00002 && Math.abs(k.lon - p.lon) < 0.00002)
+    );
+    if (!dup) kept.push(p);
+  }
+  return kept;
+}
+
+
+/** Parse Feeder Survey Excel (columns: Feeder ID, Sequence, Pole ID, …)
+ *  Hierarchy rule:
+ *    BZ0018-1, BZ0018-5  → main feeder
+ *    BZ0018-11, BZ0018-51, BZ0018-161 → spur of the longest matching parent prefix
+ */
+function parseFeederExcel(workbook) {
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null, raw: true });
+  if (!rows.length) return { map: {}, mains: [] };
+
+  // Find header row (contains "Feeder ID" or similar)
+  let headerRow = 0;
+  for (let i = 0; i < Math.min(5, rows.length); i++) {
+    const joined = rows[i].map(c => String(c || '').toUpperCase()).join('|');
+    if (joined.includes('FEEDER') && joined.includes('POLE')) { headerRow = i; break; }
+    if (joined.includes('FEEDER ID')) { headerRow = i; break; }
+  }
+  const headers = rows[headerRow].map(c => String(c || '').toUpperCase().trim());
+  let colFdr = headers.findIndex(h => h.includes('FEEDER') && h.includes('ID'));
+  if (colFdr < 0) colFdr = headers.findIndex(h => h === 'FEEDER ID' || h === 'FEEDER');
+  if (colFdr < 0) colFdr = 0;
+  let colSeq = headers.findIndex(h => h.includes('SEQUENCE') || h === 'SEQ');
+  if (colSeq < 0) colSeq = 1;
+  let colPole = headers.findIndex(h => h.includes('POLE') && h.includes('ID'));
+  if (colPole < 0) colPole = headers.findIndex(h => h.includes('POLE'));
+  if (colPole < 0) colPole = 4;
+  let colCond = headers.findIndex(h => h.includes('CONDUCTOR'));
+
+  // Collect all feeder IDs first
+  const allFids = new Set();
+  const entries = [];
+  for (let i = headerRow + 1; i < rows.length; i++) {
+    const r = rows[i];
+    if (!r) continue;
+    const fid = r[colFdr] != null ? String(r[colFdr]).trim() : '';
+    const pole = r[colPole] != null ? String(r[colPole]).trim() : '';
+    if (!fid || !pole) continue;
+    if (!/^[A-Z0-9]+-\d+/i.test(fid) && !fid.toUpperCase().startsWith('BZ')) continue;
+    allFids.add(fid);
+    entries.push({
+      fid,
+      seq: r[colSeq] != null ? Number(r[colSeq]) || 999 : 999,
+      pole,
+      conductor: colCond >= 0 && r[colCond] != null ? String(r[colCond]).trim() : null
+    });
+  }
+
+  // Resolve parent: longest matching feeder-ID prefix that exists in the survey.
+  // Supports pure-digit spurs (BZ0109-31 → BZ0109-3) and alphanumeric
+  // spur suffixes (BZ0109-31A, BZ0109-31C1 → BZ0109-3 / BZ0109-31C).
+  function getParent(fid) {
+    const m = fid.match(/^([A-Za-z0-9]+)-(.+)$/);
+    if (!m) return null;
+    const prefix = m[1], suffix = m[2];
+    // Try every proper prefix of the suffix (longest first)
+    for (let len = suffix.length - 1; len >= 1; len--) {
+      const candidate = prefix + '-' + suffix.slice(0, len);
+      if (allFids.has(candidate)) return candidate;
+    }
+    // Also try stripping trailing letters only: "31A" → "31", "3"
+    const digitsOnly = suffix.match(/^(\d+)/);
+    if (digitsOnly) {
+      const num = digitsOnly[1];
+      for (let len = num.length; len >= 1; len--) {
+        const candidate = prefix + '-' + num.slice(0, len);
+        if (candidate !== fid && allFids.has(candidate)) return candidate;
+      }
+    }
+    return null;
+  }
+  function getMain(fid) {
+    let cur = fid;
+    const seen = new Set();
+    while (true) {
+      if (seen.has(cur)) return cur;
+      seen.add(cur);
+      const p = getParent(cur);
+      if (!p) return cur;
+      cur = p;
+    }
+  }
+
+  const map = {};
+  const mainSet = new Set();
+  for (const e of entries) {
+    const main = getMain(e.fid);
+    mainSet.add(main);
+    // Keep first assignment; if pole appears in multiple feeders, prefer lower seq / main
+    if (!map[e.pole] || e.fid === main) {
+      map[e.pole] = { main, feederId: e.fid, seq: e.seq, conductor: e.conductor };
+    }
+  }
+
+  const mains = [...mainSet].sort();
+  log('Feeder survey: ' + Object.keys(map).length + ' poles, ' + mains.length + ' main feeders', 'ok');
+  mains.forEach(m => log('  ' + m, 'info'));
+  return { map, mains };
+}
+
+function assignFeederColors(mains) {
+  feederColors = {};
+  mains.forEach((m, i) => {
+    feederColors[m] = FEEDER_PALETTE[i % FEEDER_PALETTE.length];
+  });
+}
+
+function buildFeederLegend() {
+  const card = document.getElementById('feederLegendCard');
+  const box = document.getElementById('feederLegend');
+  if (!card || !box) return;
+  const mains = Object.keys(feederColors).sort();
+  if (!mains.length) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  box.innerHTML = mains.map(m => {
+    const c = feederColors[m];
+    const cnt = feederPoleCounts[m] || 0;
+    return `<div class="feeder-legend-row">
+      <div class="fdot" style="background:${c.fill};border-color:${c.stroke}"></div>
+      <span>${m}</span>
+      <span class="fcount">${cnt} poles</span>
+    </div>`;
+  }).join('');
+}
+
+/** Normalize a pole name for matching between the solar workbook and KMZ names
+ *  (collapse spaces, unify slashes, uppercase). */
+function normPoleKey(s) {
+  return String(s || '').replace(/\s+/g, '').replace(/\/+/g, '/').toUpperCase();
+}
+
+/** Parse the pole-wise Solar Report workbook.
+ *  Expected columns (any sheet): ACCOUNT_NO, TRANSFORMER_CODE, POLE, CAPACITY, INV_CAPACITY
+ *  Filters rows to the given transformer key (e.g. "BZ0109") and aggregates
+ *  solar + inverter capacity per pole (a pole can have multiple accounts).
+ */
+function parseSolarExcel(workbook, txKey) {
+  const result = {}; // normPole -> { pole, capacity, inv, accounts }
+  const wantKey = txKey ? txKey.toUpperCase() : null;
+  let matchedSheet = null, totalRows = 0, matchedRows = 0;
+
+  for (const sn of workbook.SheetNames) {
+    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sn], { header: 1, defval: null, raw: true });
+    if (rows.length < 2) continue;
+    const h = rows[0].map(x => String(x || '').toUpperCase().trim());
+    const txCol = h.findIndex(x => x.includes('TRANSFORMER') && x.includes('CODE'));
+    const poleCol = h.findIndex(x => x === 'POLE' || x.includes('POLE'));
+    const capCol = h.findIndex(x => x === 'CAPACITY' || (x.includes('CAPACITY') && !x.includes('INV') && !x.includes('TR ') && !x.includes('KVA')));
+    const invCol = h.findIndex(x => x.includes('INV') && x.includes('CAP'));
+    if (txCol < 0 || poleCol < 0 || capCol < 0) continue; // not a pole-wise solar sheet
+
+    matchedSheet = sn;
+    for (let i = 1; i < rows.length; i++) {
+      const r = rows[i];
+      if (!r) continue;
+      const txv = r[txCol] != null ? String(r[txCol]).trim() : '';
+      if (!txv) continue;
+      totalRows++;
+      if (wantKey && txv.toUpperCase() !== wantKey) continue;
+      const pole = r[poleCol] != null ? String(r[poleCol]).trim() : '';
+      if (!pole) continue;
+      const cap = parseFloat(r[capCol]);
+      const inv = invCol >= 0 ? parseFloat(r[invCol]) : NaN;
+      const key = normPoleKey(pole);
+      if (!result[key]) result[key] = { pole, capacity: 0, inv: 0, accounts: 0 };
+      if (!isNaN(cap)) result[key].capacity += cap;
+      if (!isNaN(inv)) result[key].inv += inv;
+      result[key].accounts += 1;
+      matchedRows++;
+    }
+    break; // use first sheet that matches the expected column layout
+  }
+
+  if (matchedSheet) {
+    log('  Solar report sheet: ' + matchedSheet + ' — ' + matchedRows + ' / ' + totalRows +
+      ' rows matched transformer ' + (wantKey || '(any)'), matchedRows ? 'ok' : 'err');
+  } else {
+    log('  Solar report: no sheet with TRANSFORMER_CODE / POLE / CAPACITY columns found', 'err');
+  }
+  return result;
+}
+
+/** Draw solar/inverter capacity labels on the map for poles that have data.
+ *  Uses findFeat() to locate each pole's lat/lon among transformer/HV/LV features.
+ *  Multiple Excel pole rows can resolve to the SAME physical pole feature (exact
+ *  match for one, fuzzy/substring fallback for another, e.g. "AR48X" vs "AR48X1")
+ *  — those are merged into a single badge instead of drawing overlapping duplicates. */
+function addSolarLabels(feat) {
+  solarMarkers.forEach(m => layers.solar.removeLayer(m));
+  solarMarkers = [];
+  const showChk = document.getElementById('chkSolar');
+  const show = !showChk || showChk.checked;
+
+  const byFeature = new Map(); // resolved feature object -> merged {capacity, inv, poles[]}
+  Object.values(solarByPole).forEach(entry => {
+    const f = findFeat(entry.pole, feat);
+    if (!f) return; // pole not found on the map — still listed in the table
+    if (!byFeature.has(f)) byFeature.set(f, { f, capacity: 0, inv: 0, poles: [] });
+    const agg = byFeature.get(f);
+    agg.capacity += entry.capacity;
+    agg.inv += entry.inv;
+    agg.poles.push(entry.pole);
+  });
+
+  byFeature.forEach(agg => {
+    const f = agg.f;
+    const title = agg.poles.length > 1 ? agg.poles.join(' + ') : agg.poles[0];
+    const icon = L.divIcon({
+      className: '',
+      html: `<div class="solar-tag" title="${title}">${Math.round(agg.inv)} kW</div>`,
+      iconSize: [0, 0],
+      iconAnchor: [0, 0]
+    });
+    const m = L.marker([f.lat, f.lon], { icon, interactive: false, zIndexOffset: 700 });
+    if (show) m.addTo(layers.solar);
+    solarMarkers.push(m);
+  });
+}
+
+/** Build the Pole / Solar / Inverter capacity table in the right sidebar. */
+function renderSolarTable(txKey, feat) {
+  const card = document.getElementById('solarTableCard');
+  const body = document.getElementById('solarTableBody');
+  const totals = document.getElementById('solarTotals');
+  const label = document.getElementById('solarTxLabel');
+  const rows = Object.values(solarByPole).sort((a, b) => a.pole.localeCompare(b.pole, undefined, { numeric: true }));
+
+  if (!rows.length) {
+    card.style.display = 'none';
+    return;
+  }
+  card.style.display = 'block';
+  label.textContent = txKey ? '· ' + txKey : '';
+
+  let sumCap = 0, sumInv = 0, unmatched = 0;
+  body.innerHTML = rows.map(r => {
+    const onMap = !!findFeat(r.pole, feat);
+    if (!onMap) unmatched++;
+    sumCap += r.capacity; sumInv += r.inv;
+    return `<tr class="${onMap ? '' : 'unmatched'}" title="${onMap ? '' : 'Pole not found in network file'}">
+      <td>${r.pole}</td><td>${Math.round(r.capacity)}</td><td><span class="cap-chip">${Math.round(r.inv)}</span></td>
+    </tr>`;
+  }).join('');
+
+  totals.innerHTML = rows.length + ' poles &nbsp;·&nbsp; Solar total: <b style="color:#1d4ed8">' +
+    Math.round(sumCap) + ' kW</b> &nbsp;·&nbsp; Inverter total: <span class="cap-chip">' +
+    Math.round(sumInv) + ' kW</span>' +
+    (unmatched ? '<br><span style="color:#f59e0b">⚠ ' + unmatched + ' pole(s) not found in network file</span>' : '');
+}
+
+async function parseNetwork(file) {
+  log('Parsing network: ' + file.name, 'info');
+  let allPts = [], allLns = [];
+  const name = file.name.toLowerCase();
+
+  if (name.endsWith('.kml')) {
+    const t = await file.text();
+    const f = extractKML(t, file.name);
+    allPts = f.pts; allLns = f.lns;
+  } else {
+    const buf = await file.arrayBuffer();
+    const zip = await JSZip.loadAsync(buf);
+    for (const path of Object.keys(zip.files)) {
+      if (path.toLowerCase().endsWith('.kmz')) {
+        const inner = await JSZip.loadAsync(await zip.files[path].async('arraybuffer'));
+        for (const ip of Object.keys(inner.files)) {
+          if (ip.toLowerCase().endsWith('.kml')) {
+            const t = await inner.files[ip].async('text');
+            const src = path.split('/').pop().replace('.kmz','');
+            const f = extractKML(t, src);
+            allPts = allPts.concat(f.pts);
+            allLns = allLns.concat(f.lns);
+            log('  ' + src + ': ' + f.pts.length + ' pts, ' + f.lns.length + ' lines');
+          }
+        }
+      } else if (path.toLowerCase().endsWith('.kml')) {
+        const t = await zip.files[path].async('text');
+        const src = path.split('/').pop().replace('.kml','');
+        const f = extractKML(t, src);
+        allPts = allPts.concat(f.pts);
+        allLns = allLns.concat(f.lns);
+        log('  ' + src + ': ' + f.pts.length + ' pts, ' + f.lns.length + ' lines');
+      }
+    }
+  }
+
+  let transformer = [], hv = [], lv = [];
+  allPts.forEach(p => {
+    const src = (p.source||'').toUpperCase();
+    const d = (p.desc || '').toUpperCase();
+    const nm = (p.name || '').toUpperCase();
+    // Prefer explicit TX attributes / folder / name
+    if (d.includes('KVA_RATING') || d.includes('TX_ID') ||
+        src.includes('TRANSFORMER') || src.includes('TX') ||
+        nm.includes('TRANSFORMER') || /\bTX\b/.test(nm)) {
+      transformer.push(p);
+    } else if (src.includes('HV')) {
+      hv.push(p);
+    } else if (src.includes('LV') || src.includes('POLE')) {
+      lv.push(p);
+    } else {
+      if (/^[A-Z]{1,3}\d+[A-Z]?$/i.test(p.name) || src.includes('HV')) hv.push(p);
+      else lv.push(p);
+    }
+  });
+
+  // Critical fix: collapse duplicate transformer placemarks (common in GIS exports)
+  const before = transformer.length;
+  transformer = dedupePoints(transformer);
+  if (before > transformer.length) {
+    log('Deduped transformers: ' + before + ' → ' + transformer.length, 'info');
+  }
+
+  // Also dedupe HV/LV by name+coords
+  hv = dedupePoints(hv);
+  lv = dedupePoints(lv);
+
+  const txNames = new Set(transformer.map(t => t.name));
+  // Remove any TX that accidentally landed in HV/LV
+  hv = hv.filter(p => !txNames.has(p.name));
+  lv = lv.filter(p => !txNames.has(p.name));
+  // Remove points that are essentially the TX location from HV/LV
+  if (transformer.length) {
+    const t = transformer[0];
+    hv = hv.filter(p => Math.abs(p.lat-t.lat) > 0.00002 || Math.abs(p.lon-t.lon) > 0.00002);
+    lv = lv.filter(p => Math.abs(p.lat-t.lat) > 0.00002 || Math.abs(p.lon-t.lon) > 0.00002);
+  }
+
+  log('Classified → TX:' + transformer.length + ' HV:' + hv.length + ' LV:' + lv.length + ' Lines:' + allLns.length, 'ok');
+  return { transformer, hvPoles: hv, lvPoles: lv, lvLines: allLns };
+}
+
+async function parseExcel(file) {
+  log('Parsing load profile: ' + file.name, 'info');
+  const buf = await file.arrayBuffer();
+  const wb = XLSX.read(buf, { type: 'array', cellDates: true });
+
+  // DB / mapping sheet: SERIAL + CUSTOMER_REF → POLE ID (Sheet1)
+  // Supports "POLE ID" header or blank 3rd column (BZ0030 style)
+  let serialToPole = {}, refToPole = {};
+  for (const sn of wb.SheetNames) {
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[sn], { header: 1, defval: null, raw: true });
+    if (rows.length < 2) continue;
+    const h = rows[0].map(x => String(x||'').toUpperCase().trim());
+    if (h.some(x => x.includes('PHASE_A') && x.includes('VOLT'))) continue;
+    const si = h.findIndex(x => x.includes('SERIAL'));
+    const ri = h.findIndex(x => x.includes('CUSTOMER') || x.includes('REF'));
+    let pi = h.findIndex(x => x.includes('POLE'));
+    // No POLE header: use 3rd column (common in these workbooks)
+    if (pi < 0 && (si >= 0 || ri >= 0) && rows[0].length >= 3) {
+      pi = 2;
+      for (let c = 0; c < rows[0].length; c++) {
+        if (c !== si && c !== ri && rows[1] && rows[1][c] != null) { pi = c; break; }
+      }
+    }
+    if (pi >= 0 && (si >= 0 || ri >= 0)) {
+      log('  Mapping (DB) sheet: ' + sn + ' (pole col ' + pi + ')', 'info');
+      for (let i = 1; i < rows.length; i++) {
+        const pole = rows[i][pi] != null ? String(rows[i][pi]).trim() : null;
+        if (!pole) continue;
+        if (si >= 0 && rows[i][si] != null && rows[i][si] !== '')
+          serialToPole[String(rows[i][si]).trim()] = pole;
+        if (ri >= 0 && rows[i][ri] != null && rows[i][ri] !== '')
+          refToPole[String(rows[i][ri]).trim()] = pole;
+      }
+      log('  Mapped meters → poles: ' + Object.keys(serialToPole).length + ' serial, ' +
+        Object.keys(refToPole).length + ' ref', 'ok');
+    }
+  }
+
+  // Floor to 15-min slot key "HH:MM"
+  const toSlot = (hh, mm) => {
+    const h = ((Number(hh) % 24) + 24) % 24;
+    const m = Math.floor((((Number(mm) % 60) + 60) % 60) / 15) * 15;
+    return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+  };
+  // Parse Excel time: Date, time-of-day serial (0–1), "H:MM:SS", datetime serial
+  // Reject epoch-ms TIMESTAMP values (e.g. 1.78e12)
+  const parseTimeToSlot = (val) => {
+    if (val == null || val === '') return null;
+    if (val instanceof Date && !isNaN(val.getTime())) {
+      return toSlot(val.getHours(), val.getMinutes());
+    }
+    if (typeof val === 'number' && isFinite(val)) {
+      // Epoch ms / huge numbers are NOT times of day
+      if (val > 100000) return null;
+      // Excel time fraction (0.25 = 06:00) or date serial with time fraction
+      let frac = val;
+      if (val >= 1) frac = val - Math.floor(val);
+      if (frac < 0) frac += 1;
+      const totalMins = Math.round(frac * 24 * 60) % (24 * 60);
+      return toSlot(Math.floor(totalMins / 60), totalMins % 60);
+    }
+    const s = String(val).trim();
+    // "14:30:00" / "14:30" / "2:15:00"
+    let m = s.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+    if (m) return toSlot(parseInt(m[1], 10), parseInt(m[2], 10));
+    m = s.match(/[T\s](\d{1,2}):(\d{2})(?::(\d{2}))?/);
+    if (m) return toSlot(parseInt(m[1], 10), parseInt(m[2], 10));
+    return null;
+  };
+  const parseDateOnly = (val) => {
+    if (val == null || val === '') return null;
+    if (val instanceof Date && !isNaN(val.getTime())) {
+      // Prefer local Y-M-D to avoid UTC day shift
+      const y = val.getFullYear(), mo = val.getMonth() + 1, da = val.getDate();
+      // If year is 1899/1900 it's likely a time-only cell
+      if (y < 1950) return null;
+      return y + '-' + String(mo).padStart(2, '0') + '-' + String(da).padStart(2, '0');
+    }
+    if (typeof val === 'number' && isFinite(val) && val >= 1) {
+      // Excel serial date
+      const utc = new Date(Date.UTC(1899, 11, 30) + Math.floor(val) * 86400000);
+      return utc.toISOString().slice(0, 10);
+    }
+    const s = String(val).trim();
+    const m = s.match(/(\d{4}-\d{2}-\d{2})/);
+    if (m) return m[1];
+    return null;
+  };
+
+  const raw = {}; // pole -> date -> [ {a,b,c,slot} ]
+  let timedSamples = 0, totalSamples = 0;
+  for (const sn of wb.SheetNames) {
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[sn], { header: 1, defval: null, raw: true });
+    if (rows.length < 2) continue;
+    const h = rows[0].map(x => String(x||'').toUpperCase());
+    // Voltage only (not CURRENT). e.g. PHASE_A_INST._VOLTAGE (V)
+    const va = h.findIndex(x => x.includes('PHASE_A') && x.includes('VOLT') && !x.includes('CURRENT'));
+    const vb = h.findIndex(x => x.includes('PHASE_B') && x.includes('VOLT') && !x.includes('CURRENT'));
+    const vc = h.findIndex(x => x.includes('PHASE_C') && x.includes('VOLT') && !x.includes('CURRENT'));
+    // DATE column only — not TIMESTAMP
+    const di = h.findIndex(x => x === 'DATE' || (x.includes('DATE') && !x.includes('TIME') && !x.includes('UPDATE')));
+    // TIME column only — never TIMESTAMP (ms epoch was parsed as 00:00 for every row)
+    let ti = h.findIndex(x => x === 'TIME');
+    if (ti < 0) ti = h.findIndex(x => x.includes('TIME') && !x.includes('DATE') && !x.includes('STAMP'));
+    const si = h.findIndex(x => x.includes('SERIAL'));
+    const ri = h.findIndex(x => x.includes('CUSTOMER') || (x.includes('REF') && !x.includes('PREF')));
+    if (va < 0 && vb < 0 && vc < 0) continue;
+    log('  Profile sheet: ' + sn + ' (' + (rows.length-1) + ' rows)' +
+      ' DATE@' + di + ' TIME@' + ti + ' VA/B/C@' + va + '/' + vb + '/' + vc, 'info');
+
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      let pole = null;
+      if (si >= 0 && row[si] != null) pole = serialToPole[String(row[si])];
+      if (!pole && ri >= 0 && row[ri] != null) pole = refToPole[String(row[ri])];
+      if (!pole) continue;
+
+      let ds = di >= 0 ? parseDateOnly(row[di]) : null;
+      let slot = null;
+
+      // TIME column first (most reliable for 15-min intervals)
+      if (ti >= 0 && row[ti] != null && row[ti] !== '') {
+        slot = parseTimeToSlot(row[ti]);
+      }
+      // Else time embedded in DATE
+      if (!slot && di >= 0 && row[di] != null) {
+        slot = parseTimeToSlot(row[di]);
+        // If DATE was datetime, also ensure date string
+        if (!ds && row[di] instanceof Date) ds = parseDateOnly(row[di]);
+        if (!ds && typeof row[di] === 'number') ds = parseDateOnly(row[di]);
+        if (!ds) {
+          const s = String(row[di]);
+          const m = s.match(/(\d{4}-\d{2}-\d{2})/);
+          if (m) ds = m[1];
+        }
+      }
+      if (!ds) continue;
+
+      const safe = v => { const n = parseFloat(v); return (!isNaN(n) && n > 100 && n < 300) ? n : null; };
+      const a = safe(row[va]), b = safe(row[vb]), c = safe(row[vc]);
+      if (a == null && b == null && c == null) continue;
+      if (!raw[pole]) raw[pole] = {};
+      if (!raw[pole][ds]) raw[pole][ds] = [];
+      raw[pole][ds].push({ a, b, c, slot });
+      totalSamples++;
+      if (slot) timedSamples++;
+    }
+  }
+  log('  Samples with time slot: ' + timedSamples + ' / ' + totalSamples, timedSamples ? 'ok' : 'err');
+
+  function aggSamples(rds) {
+    const vas = rds.map(r => r.a).filter(v => v != null);
+    const vbs = rds.map(r => r.b).filter(v => v != null);
+    const vcs = rds.map(r => r.c).filter(v => v != null);
+    const all = [...vas, ...vbs, ...vcs];
+    if (!all.length) return null;
+    const avg = arr => arr.length ? Math.round(arr.reduce((x, y) => x + y, 0) / arr.length * 10) / 10 : null;
+    return {
+      va: avg(vas), vb: avg(vbs), vc: avg(vcs),
+      vmin: Math.round(Math.min(...all) * 10) / 10,
+      vmax: Math.round(Math.max(...all) * 10) / 10,
+      vavg: avg(all), count: rds.length
+    };
+  }
+
+  const daily = {};
+  const hourly = {}; // pole -> date -> 15-min slot -> stats
+  const datesSet = new Set();
+  const timesByDate = {}; // date -> Set of slots "HH:MM"
+
+  for (const [pole, dates] of Object.entries(raw)) {
+    daily[pole] = {};
+    hourly[pole] = {};
+    for (const [d, rds] of Object.entries(dates)) {
+      const dayStats = aggSamples(rds);
+      if (!dayStats) continue;
+      daily[pole][d] = dayStats;
+      datesSet.add(d);
+
+      // Group by 15-minute slot
+      const bySlot = {};
+      rds.forEach(r => {
+        if (r.slot == null) return;
+        if (!bySlot[r.slot]) bySlot[r.slot] = [];
+        bySlot[r.slot].push(r);
+      });
+      if (Object.keys(bySlot).length) {
+        hourly[pole][d] = {};
+        if (!timesByDate[d]) timesByDate[d] = new Set();
+        for (const [sl, list] of Object.entries(bySlot)) {
+          const st = aggSamples(list);
+          if (st) {
+            hourly[pole][d][sl] = st;
+            timesByDate[d].add(sl);
+          }
+        }
+      }
+    }
+  }
+  const dates = [...datesSet].sort();
+  const times = {};
+  for (const d of dates) {
+    times[d] = timesByDate[d] ? [...timesByDate[d]].sort() : [];
+  }
+  const anyTimes = Object.values(times).some(t => t.length > 0);
+  log('Voltage: ' + Object.keys(daily).length + ' poles, ' + dates.length + ' days' +
+    (anyTimes ? ', 15-min time slots available' : ' (no time column — All day only)'), 'ok');
+  return { daily, hourly, dates, times };
+}
+
+/* Nominal limits: below 216.2 V or above 243.8 V → out of range (red) */
+const V_MIN_LIMIT = 216.2;
+const V_MAX_LIMIT = 243.8;
+
+function isOutOfRange(v) {
+  if (v == null || isNaN(v)) return false;
+  return v < V_MIN_LIMIT || v > V_MAX_LIMIT;
+}
+function vClass(v) {
+  if (v == null) return '';
+  if (isOutOfRange(v)) return 'v-low';
+  if (v < 220) return 'v-warn';
+  if (v <= 240) return 'v-ok';
+  return 'v-high';
+}
+function vColor(v) {
+  if (v == null) return '#64748b';
+  if (isOutOfRange(v)) return '#ef4444';
+  if (v < 220) return '#f59e0b';
+  if (v <= 240) return '#10b981';
+  return '#f59e0b';
+}
+/* Leader line colors — distinct from LV lines (#0284c7 cyan) */
+function leaderColor(v) {
+  if (v == null) return '#a78bfa';
+  if (isOutOfRange(v)) return '#ef4444';   // red out of range
+  if (v < 220) return '#c084fc';           // light purple warn
+  if (v <= 240) return '#a855f7';          // purple normal
+  return '#c084fc';                       // light purple high-warn
+}
+function fmtV(v) {
+  if (v == null || isNaN(v)) return '–';
+  return v;
+}
+function vSpan(v, label) {
+  const val = fmtV(v);
+  const red = isOutOfRange(v) ? ' class="v-out"' : '';
+  if (!label) {
+    if (val === '–') return '–';
+    return `<span${red}>${val} V</span>`;
+  }
+  // Clear Phase A / B / C row for callout
+  if (val === '–') {
+    return `<span class="ph-lbl">${label}</span><span>–</span>`;
+  }
+  return `<span class="ph-lbl">${label}</span><span${red}>${val} V</span>`;
+}
+
+function clearAll() {
+  Object.values(layers).forEach(l => l.clearLayers && l.clearLayers());
+  nameMarkers = []; voltLabelMarkers = []; solarMarkers = [];
+}
+
+/** Popup HTML for a pole/transformer with Street View at that location */
+function polePopupHtml(title, desc, lat, lon) {
+  const latS = Number(lat).toFixed(6);
+  const lonS = Number(lon).toFixed(6);
+  const svUrl = 'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=' + latS + ',' + lonS;
+  return '<div class="pole-popup">' +
+    '<div class="pp-title">' + title + '</div>' +
+    (desc ? '<div class="pp-desc">' + desc + '</div>' : '') +
+    '<div class="pp-coords">' + latS + ', ' + lonS + '</div>' +
+    '<a class="pp-sv" href="' + svUrl + '" target="_blank" rel="noopener noreferrer" ' +
+    'onclick="window.open(this.href,\'_blank\');return false;">🛣 Street View</a>' +
+    '</div>';
+}
+
+function drawNetwork(feat) {
+  clearAll();
+
+  const addTag = (lat, lon, name, kind, alwaysShow) => {
+    // TX labels sit above the marker; pole labels sit below
+    const anchorY = kind === 'tx' ? 28 : -12;
+    const icon = L.divIcon({
+      className: '',
+      html: `<div class="pole-tag ${kind}">${name}</div>`,
+      iconSize: [0, 0],
+      iconAnchor: [0, anchorY]
+    });
+    const m = L.marker([lat, lon], { icon, interactive: false, zIndexOffset: kind === 'tx' ? 1000 : 0 });
+    if (alwaysShow) {
+      m.addTo(layers.transformer);
+    } else {
+      if (document.getElementById('chkNames').checked) m.addTo(layers.names);
+      nameMarkers.push(m);
+    }
+  };
+
+  feat.transformer.forEach(f => {
+    L.circleMarker([f.lat, f.lon], {
+      radius: 12, color: '#881337', fillColor: '#f43f5e', fillOpacity: 1, weight: 2
+    }).bindPopup(polePopupHtml(f.name, f.desc || 'Transformer', f.lat, f.lon), { maxWidth: 240 })
+      .addTo(layers.transformer);
+    if (f.name) addTag(f.lat, f.lon, f.name, 'tx', true);
+  });
+  feat.hvPoles.forEach(f => {
+    L.circleMarker([f.lat, f.lon], {
+      radius: 7, color: '#9a3412', fillColor: '#fb923c', fillOpacity: 1, weight: 1.5
+    }).bindPopup(polePopupHtml('HV ' + f.name, f.desc || '', f.lat, f.lon), { maxWidth: 240 })
+      .addTo(layers.hv);
+    addTag(f.lat, f.lon, f.name, 'hv', false);
+  });
+  // Count poles per main feeder (only those present on map)
+  feederPoleCounts = {};
+  feat.lvPoles.forEach(f => {
+    const info = feederMap[f.name];
+    if (info) {
+      feederPoleCounts[info.main] = (feederPoleCounts[info.main] || 0) + 1;
+    }
+  });
+  buildFeederLegend();
+
+  feat.lvPoles.forEach(f => {
+    const info = feederMap[f.name];
+    let stroke = '#14532d', fill = '#4ade80';
+    let popupExtra = '';
+    if (info && feederColors[info.main]) {
+      const c = feederColors[info.main];
+      stroke = c.stroke;
+      fill = c.fill;
+      popupExtra = '<div style="margin-top:6px;font-size:11px">' +
+        '<b style="color:' + fill + '">● ' + info.main + '</b>' +
+        (info.feederId !== info.main ? ' <span style="color:#94a3b8">/ ' + info.feederId + '</span>' : '') +
+        (info.conductor ? '<br>Conductor: ' + info.conductor : '') +
+        '</div>';
+    }
+    const solarEntry = solarByPole[normPoleKey(f.name)];
+    if (solarEntry) {
+      popupExtra += '<div style="margin-top:6px;font-size:11px">' +
+        '☀ Solar: <b style="color:#1d4ed8">' + Math.round(solarEntry.capacity) + ' kW</b> &nbsp; ' +
+        '<span>Inverter: <span class="cap-chip">' + Math.round(solarEntry.inv) + ' kW</span></span>' +
+        (solarEntry.accounts > 1 ? ' <span style="color:#94a3b8">(' + solarEntry.accounts + ' accounts)</span>' : '') +
+        '</div>';
+    }
+    L.circleMarker([f.lat, f.lon], {
+      radius: info ? 6 : 5,
+      color: stroke,
+      fillColor: fill,
+      fillOpacity: 0.95,
+      weight: info ? 2 : 1
+    }).bindPopup(
+      polePopupHtml('LV ' + f.name, (f.desc || '') + popupExtra, f.lat, f.lon),
+      { maxWidth: 260 }
+    ).addTo(layers.lvPoles);
+
+    // Coloured name tag when feeder is known
+    if (info && feederColors[info.main]) {
+      const c = feederColors[info.main];
+      const anchorY = -12;
+      const icon = L.divIcon({
+        className: '',
+        html: `<div class="pole-tag feeder" style="border-color:${c.stroke};background:${c.fill}22;color:${c.fill}">${f.name}</div>`,
+        iconSize: [0, 0],
+        iconAnchor: [0, anchorY]
+      });
+      const m = L.marker([f.lat, f.lon], { icon, interactive: false });
+      if (document.getElementById('chkNames').checked) m.addTo(layers.names);
+      nameMarkers.push(m);
+    } else {
+      addTag(f.lat, f.lon, f.name, 'lv', false);
+    }
+  });
+  // Build a spatial index of LV poles that have a feeder assignment
+  // so we can colour each line segment by the feeder of its nearest poles.
+  const feederPolePts = [];
+  feat.lvPoles.forEach(p => {
+    const info = feederMap[p.name];
+    if (info && feederColors[info.main]) {
+      feederPolePts.push({ lat: p.lat, lon: p.lon, main: info.main });
+    }
+  });
+  function nearestFeederMain(lat, lon) {
+    let best = null, bestD = Infinity;
+    for (const p of feederPolePts) {
+      const d = (p.lat - lat) * (p.lat - lat) + (p.lon - lon) * (p.lon - lon);
+      if (d < bestD) { bestD = d; best = p.main; }
+    }
+    // ~50 m threshold (rough degrees²); beyond that leave default cyan
+    if (bestD > 0.0000005) return null;
+    return best;
+  }
+  function lineFeederColor(coords) {
+    if (!feederPolePts.length || !coords || coords.length < 2) return '#0284c7';
+    const start = coords[0], end = coords[coords.length - 1];
+    const m1 = nearestFeederMain(start[0], start[1]);
+    const m2 = nearestFeederMain(end[0], end[1]);
+    const main = m1 || m2;
+    if (main && feederColors[main]) return feederColors[main].fill;
+    return '#0284c7';
+  }
+  feat.lvLines.forEach(f => {
+    const col = lineFeederColor(f.coords);
+    L.polyline(f.coords, { color: col, weight: 2.5, opacity: 0.9 }).addTo(layers.lvLines);
+  });
+
+  const all = [...feat.transformer, ...feat.hvPoles, ...feat.lvPoles];
+  if (all.length) map.fitBounds(L.latLngBounds(all.map(p => [p.lat, p.lon])).pad(0.12));
+
+  document.getElementById('sTx').textContent = feat.transformer.length;
+  document.getElementById('sHv').textContent = feat.hvPoles.length;
+  document.getElementById('sLv').textContent = feat.lvPoles.length;
+  document.getElementById('sLn').textContent = feat.lvLines.length;
+
+  if (feat.transformer.length) {
+    const t = feat.transformer[0];
+    document.getElementById('txInfo').innerHTML =
+      `<div class="tx-info-name">${t.name}</div><div class="tx-info-sub">${t.desc||''}</div>`;
+  }
+}
+
+function findFeat(poleName, feat) {
+  const all = [...feat.transformer, ...feat.hvPoles, ...feat.lvPoles];
+  let f = all.find(p => p.name === poleName);
+  if (f) return f;
+  // Normalize: collapse spaces & slashes (e.g. "WK 8/54" ↔ "WK8/54")
+  const nrm = s => String(s||'').replace(/\s+/g,'').replace(/\/+/g,'/').toUpperCase();
+  f = all.find(p => nrm(p.name) === nrm(poleName));
+  if (f) return f;
+  f = all.find(p => nrm(p.name).includes(nrm(poleName)) || nrm(poleName).includes(nrm(p.name)));
+  if (f) return f;
+  const cln = s => String(s||'').replace(/[^A-Z0-9]/gi,'').toUpperCase();
+  return all.find(p => cln(p.name) === cln(poleName)) || null;
+}
+
+function aggregateStats(list) {
+  if (!list || !list.length) return null;
+  let sumVa = 0, nVa = 0, sumVb = 0, nVb = 0, sumVc = 0, nVc = 0;
+  let sumAll = 0, nAll = 0, vmin = Infinity, vmax = -Infinity, count = 0;
+  list.forEach(s => {
+    if (!s) return;
+    count += (s.count || 0);
+    if (s.va != null) { sumVa += s.va * (s.count || 1); nVa += (s.count || 1); }
+    if (s.vb != null) { sumVb += s.vb * (s.count || 1); nVb += (s.count || 1); }
+    if (s.vc != null) { sumVc += s.vc * (s.count || 1); nVc += (s.count || 1); }
+    if (s.vavg != null && s.count) { sumAll += s.vavg * s.count; nAll += s.count; }
+    else if (s.vavg != null) { sumAll += s.vavg; nAll += 1; }
+    if (s.vmin != null) vmin = Math.min(vmin, s.vmin);
+    if (s.vmax != null) vmax = Math.max(vmax, s.vmax);
+  });
+  if (nAll === 0 && count === 0) return null;
+  const avg = (sum, n) => n ? Math.round(sum / n * 10) / 10 : null;
+  return {
+    va: avg(sumVa, nVa),
+    vb: avg(sumVb, nVb),
+    vc: avg(sumVc, nVc),
+    vmin: isFinite(vmin) ? Math.round(vmin * 10) / 10 : null,
+    vmax: isFinite(vmax) ? Math.round(vmax * 10) / 10 : null,
+    vavg: avg(sumAll, nAll),
+    count: count || nAll
+  };
+}
+
+function getDayStats(pole, dateStr, timeStr) {
+  if (!voltageData.daily || !voltageData.daily[pole]) return null;
+
+  // All days: aggregate across every available date for this pole
+  if (dateStr === 'all') {
+    const poleDaily = voltageData.daily[pole];
+    const dates = Object.keys(poleDaily || {});
+    if (!dates.length) return null;
+
+    if (timeStr && timeStr !== 'all') {
+      // Specific time slot across all days
+      const slots = [];
+      if (voltageData.hourly && voltageData.hourly[pole]) {
+        dates.forEach(d => {
+          const st = voltageData.hourly[pole][d] && voltageData.hourly[pole][d][timeStr];
+          if (st) slots.push(st);
+        });
+      }
+      return aggregateStats(slots);
+    }
+    // All day across all days
+    return aggregateStats(dates.map(d => poleDaily[d]));
+  }
+
+  // Specific 15-min slot — do NOT fall back to daily (that hid time changes)
+  if (timeStr && timeStr !== 'all') {
+    if (voltageData.hourly &&
+        voltageData.hourly[pole] &&
+        voltageData.hourly[pole][dateStr] &&
+        voltageData.hourly[pole][dateStr][timeStr]) {
+      return voltageData.hourly[pole][dateStr][timeStr];
+    }
+    return null; // no samples for this pole at this time
+  }
+  return voltageData.daily[pole][dateStr] || null;
+}
+
+function showVoltages(dateStr, timeStr) {
+  layers.voltage.clearLayers();
+  voltLabelMarkers = [];
+  if (!dateStr || !voltageData.daily) return;
+  if (timeStr == null) {
+    const ts = document.getElementById('timeSel');
+    timeStr = ts ? ts.value : 'all';
+  }
+  let n = 0;
+  const entries = Object.entries(voltageData.daily);
+  const dateLabel = (dateStr === 'all') ? 'All days' : dateStr;
+  const timeLabel = (!timeStr || timeStr === 'all') ? 'All day' : slotDisplay(timeStr);
+
+  entries.forEach(([pole, dates], idx) => {
+    const day = getDayStats(pole, dateStr, timeStr);
+    if (!day) return;
+    const feat = findFeat(pole, allFeatures);
+    if (!feat) { log('  no geometry: ' + pole); return; }
+
+    const cls = vClass(day.vavg);
+    const col = vColor(day.vavg);
+    const poleLatLng = L.latLng(feat.lat, feat.lon);
+
+    // Marker at true pole location
+    L.circleMarker(poleLatLng, {
+      radius: 10, color: '#0f172a', fillColor: col, fillOpacity: 1, weight: 2.5
+    }).bindPopup(
+      `<b>${pole}</b><br>Date: ${dateLabel}<br>Time: ${timeLabel}<br><b>Avg ${day.vavg} V</b><br>
+       Phase A: ${day.va??'N/A'} V<br>Phase B: ${day.vb??'N/A'} V<br>Phase C: ${day.vc??'N/A'} V<br>
+       Min <b>${day.vmin}</b> · Max <b>${day.vmax}</b><br>Samples: ${day.count}`
+    ).addTo(layers.voltage);
+
+    // Default label offset (fan out so callouts don't stack)
+    const angle = (idx % 8) * (Math.PI / 4) + Math.PI / 8;
+    const dist = 0.00028;
+    let labLat = feat.lat + Math.sin(angle) * dist;
+    let labLon = feat.lon + Math.cos(angle) * dist;
+    if (labelPositions[pole]) {
+      labLat = labelPositions[pole].lat;
+      labLon = labelPositions[pole].lon;
+    }
+    const labelLatLng = L.latLng(labLat, labLon);
+
+    // Leader line: pole → label (purple family — not LV cyan)
+    const lcol = leaderColor(day.vavg);
+    const leader = L.polyline([poleLatLng, labelLatLng], {
+      color: lcol,
+      weight: 2.5,
+      opacity: 0.95,
+      dashArray: '6 4',
+      lineCap: 'round'
+    }).addTo(layers.voltage);
+
+    // Small anchor dot on pole end of leader
+    L.circleMarker(poleLatLng, {
+      radius: 3.5, color: lcol, fillColor: '#fff', fillOpacity: 1, weight: 2
+    }).addTo(layers.voltage);
+
+    // Voltage unbalance % = (Vmax − Vmin) / Vavg × 100  (phase spread)
+    let unbal = null;
+    if (day.vavg && day.vmax != null && day.vmin != null && day.vavg > 0) {
+      unbal = Math.round((day.vmax - day.vmin) / day.vavg * 1000) / 10; // 1 decimal
+    }
+    const minSpan = isOutOfRange(day.vmin)
+      ? `<span class="v-out">${day.vmin}</span>` : `${day.vmin}`;
+    const maxSpan = isOutOfRange(day.vmax)
+      ? `<span class="v-out">${day.vmax}</span>` : `${day.vmax}`;
+    const ubStr = unbal != null ? unbal + '%' : '–';
+    const ubCls = (unbal != null && unbal > 2) ? ' v-out' : '';
+
+    // Compact shape: pole + Min / Max / Unbalance only
+    const html = `<div class="v-callout ${cls}" title="Click for Phase A / B / C">
+      <div class="v-name">${pole}</div>
+      <div class="v-row"><span class="lbl">Min</span><span>${minSpan} V</span></div>
+      <div class="v-row"><span class="lbl">Max</span><span>${maxSpan} V</span></div>
+      <div class="v-row"><span class="lbl">Unbal</span><span class="${ubCls}">${ubStr}</span></div>
+      <div class="v-hint">click for phases</div>
+    </div>`;
+
+    const icon = L.divIcon({
+      className: '',
+      html,
+      iconSize: [118, 88],
+      iconAnchor: [59, 44]
+    });
+
+    // Full detail on click
+    const avgCls = isOutOfRange(day.vavg) ? ' v-out' : '';
+    const popupHtml = `<div class="v-popup">
+      <div class="vp-name">${pole}</div>
+      <div class="vp-when">${dateLabel} · ${timeLabel}</div>
+      <div class="vp-avg${avgCls}">${day.vavg} V</div>
+      <div class="vp-phase">${vSpan(day.va, 'Phase A')}</div>
+      <div class="vp-phase">${vSpan(day.vb, 'Phase B')}</div>
+      <div class="vp-phase">${vSpan(day.vc, 'Phase C')}</div>
+      <div class="vp-mm">Min ${minSpan} V · Max ${maxSpan} V</div>
+      <div class="vp-ub">Unbalance: ${ubStr}</div>
+    </div>`;
+
+    const marker = L.marker(labelLatLng, {
+      icon,
+      draggable: true,
+      autoPan: true,
+      zIndexOffset: 600
+    });
+    marker.bindPopup(popupHtml, { maxWidth: 220, className: 'v-popup-wrap' });
+
+    marker.on('drag', function(e) {
+      const ll = e.target.getLatLng();
+      leader.setLatLngs([poleLatLng, ll]);
+    });
+    marker.on('dragend', function(e) {
+      const ll = e.target.getLatLng();
+      labelPositions[pole] = { lat: ll.lat, lon: ll.lng };
+      leader.setLatLngs([poleLatLng, ll]);
+    });
+    // Open phase detail on click (popup); drag still works
+    marker.on('click', function() { this.openPopup(); });
+
+    if (document.getElementById('chkVolt').checked) marker.addTo(layers.voltage);
+    voltLabelMarkers.push(marker);
+    n++;
+  });
+  const tPart = (!timeStr || timeStr === 'all') ? '' : (' @ ' + slotDisplay(timeStr));
+  let countMsg = n + ' poles with Phase A/B/C on ' + dateLabel + tPart;
+  if (n === 0 && timeStr && timeStr !== 'all') {
+    countMsg = 'No pole samples at ' + slotDisplay(timeStr) + ' on ' + dateLabel +
+      ' — try All day or another time';
+  }
+  document.getElementById('vCount').textContent = countMsg;
+  const vActive = document.getElementById('vActive');
+  if (vActive) {
+    vActive.innerHTML = 'Showing <span>' + dateLabel + '</span> · <span>' + timeLabel +
+      '</span> — Phase A / B / C' + (n ? '' : ' (no data)');
+  }
+}
+
+function updateDateRangeUI() {
+  const el = document.getElementById('vRange');
+  if (!el) return;
+  const dates = availableDates || [];
+  if (!dates.length) {
+    el.style.display = 'none';
+    el.innerHTML = '';
+    return;
+  }
+  el.style.display = 'block';
+  el.innerHTML = 'Load profile date range: <strong>' + dates[0] + '</strong> → <strong>' +
+    dates[dates.length - 1] + '</strong><br>' + dates.length + ' day(s) available from profile';
+}
+
+/* All 15-min slots: 00:00, 00:15, ... 23:45 */
+function allTimeSlots() {
+  const out = [];
+  for (let h = 0; h < 24; h++) {
+    for (let m = 0; m < 60; m += 15) {
+      out.push(String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0'));
+    }
+  }
+  return out;
+}
+/* Display like 0:00:00, 0:15:00, ... 23:45:00 */
+function slotDisplay(slot) {
+  const [hs, ms] = slot.split(':').map(Number);
+  return hs + ':' + String(ms).padStart(2, '0') + ':00';
+}
+
+/* Slider index: 0 = All day, 1..96 = 15-min slots */
+function slotFromSliderIndex(idx) {
+  if (idx <= 0) return 'all';
+  const slots = allTimeSlots();
+  return slots[Math.min(idx - 1, slots.length - 1)] || 'all';
+}
+function sliderIndexFromSlot(slot) {
+  if (!slot || slot === 'all') return 0;
+  const i = allTimeSlots().indexOf(slot);
+  return i >= 0 ? i + 1 : 0;
+}
+function syncTimeSliderLabel(val) {
+  const lab = document.getElementById('timeSliderLabel');
+  if (!lab) return;
+  lab.textContent = (!val || val === 'all') ? 'All day' : slotDisplay(val);
+}
+function setTimeControls(slot, applyVoltages) {
+  const sel = document.getElementById('timeSel');
+  const slider = document.getElementById('timeSlider');
+  if (sel) sel.value = slot || 'all';
+  if (slider) {
+    slider.value = String(sliderIndexFromSlot(slot));
+    syncTimeSliderLabel(slot);
+  }
+  if (applyVoltages) {
+    const d = document.getElementById('dateSel').value;
+    if (d) showVoltages(d, slot || 'all');
+  }
+}
+
+function populateTimeSel(dateStr) {
+  const sel = document.getElementById('timeSel');
+  const slider = document.getElementById('timeSlider');
+  if (!sel) return;
+  const prev = sel.value || 'all';
+  sel.innerHTML = '';
+  const optAll = document.createElement('option');
+  optAll.value = 'all';
+  optAll.textContent = 'All day';
+  sel.appendChild(optAll);
+  const slots = allTimeSlots();
+  let available = new Set();
+  if (dateStr === 'all') {
+    // Union of time slots present on any day
+    if (voltageData.times) {
+      Object.values(voltageData.times).forEach(arr => {
+        (arr || []).forEach(s => available.add(s));
+      });
+    }
+  } else if (voltageData.times && voltageData.times[dateStr]) {
+    available = new Set(voltageData.times[dateStr]);
+  }
+  const dateHint = (dateStr === 'all') ? 'any day' : dateStr;
+  slots.forEach(s => {
+    const o = document.createElement('option');
+    o.value = s;
+    o.textContent = slotDisplay(s);
+    if (available.size && !available.has(s)) {
+      o.title = 'No samples in load profile for this slot on ' + dateHint;
+    }
+    sel.appendChild(o);
+  });
+  sel.disabled = false;
+  if (slider) {
+    slider.disabled = false;
+    slider.min = 0;
+    slider.max = slots.length; // 0=All day, 1..96 slots
+    slider.step = 1;
+  }
+  const keep = (prev !== 'all' && slots.includes(prev)) ? prev : 'all';
+  setTimeControls(keep, false);
+  sel.title = '15-minute intervals (0:00:00 – 23:45:00)';
+}
+
+async function process() {
+  const netF = document.getElementById('netFile').files[0];
+  const xlsF = document.getElementById('xlsFile').files[0];
+  const feederF = document.getElementById('feederFile') ? document.getElementById('feederFile').files[0] : null;
+  const solarF = document.getElementById('solarFile') ? document.getElementById('solarFile').files[0] : null;
+  if (!netF) return alert('Select a network file first');
+
+  // Require matching transformer IDs in file names when both files are uploaded
+  if (xlsF) {
+    const check = filesMatch(netF.name, xlsF.name);
+    if (!check.ok) {
+      log('BLOCKED: ' + check.message.replace(/\n/g, ' | '), 'err');
+      alert(check.message);
+      setStatus('File name mismatch — upload matching pair', false);
+      return;
+    }
+    log('File pair matched for transformer: ' + check.key, 'ok');
+  }
+
+  showLoading(true);
+  document.getElementById('processBtn').disabled = true;
+  // reset dragged positions on new process
+  for (const k of Object.keys(labelPositions)) delete labelPositions[k];
+
+  try {
+    allFeatures = await parseNetwork(netF);
+
+    // Parse feeder survey Excel if provided → colour poles by main feeder
+    feederMap = {};
+    feederColors = {};
+    feederPoleCounts = {};
+    if (feederF) {
+      log('Parsing feeder survey: ' + feederF.name, 'info');
+      const buf = await feederF.arrayBuffer();
+      const wb = XLSX.read(buf, { type: 'array', cellDates: true });
+      const parsed = parseFeederExcel(wb);
+      feederMap = parsed.map;
+      assignFeederColors(parsed.mains);
+      log('Feeder colours assigned for ' + parsed.mains.length + ' main feeders', 'ok');
+    } else {
+      const legCard = document.getElementById('feederLegendCard');
+      if (legCard) legCard.style.display = 'none';
+    }
+
+    // Use transformer ID from filename (e.g. BZ0109) as the map label
+    const txKey = extractTxKey(netF.name);
+    if (txKey && allFeatures.transformer.length) {
+      allFeatures.transformer.forEach(t => { t.name = txKey; });
+    }
+
+    // Parse pole-wise Solar Report Excel → solar/inverter capacity per pole
+    // (done before drawNetwork so pole popups can include the capacity line)
+    solarByPole = {};
+    if (solarF) {
+      log('Parsing solar report: ' + solarF.name, 'info');
+      const buf = await solarF.arrayBuffer();
+      const wb = XLSX.read(buf, { type: 'array', cellDates: true });
+      solarByPole = parseSolarExcel(wb, txKey);
+      log('Solar capacity mapped for ' + Object.keys(solarByPole).length + ' pole(s)', 'ok');
+    } else {
+      document.getElementById('solarTableCard').style.display = 'none';
+    }
+
+    drawNetwork(allFeatures);
+
+    if (solarF) {
+      addSolarLabels(allFeatures);
+      renderSolarTable(txKey, allFeatures);
+    }
+
+    // Reset voltage UI every run; fill only when load profile is present
+    voltageData = {};
+    availableDates = [];
+    if (layers.voltage) layers.voltage.clearLayers();
+    voltLabelMarkers = [];
+    const dateSel = document.getElementById('dateSel');
+    const timeSel = document.getElementById('timeSel');
+    const vCount = document.getElementById('vCount');
+    dateSel.innerHTML = '<option value="">Load profile first</option>';
+    dateSel.disabled = true;
+    timeSel.innerHTML = '<option value="all">All day</option>';
+    timeSel.disabled = true;
+    const timeSlider = document.getElementById('timeSlider');
+    if (timeSlider) {
+      timeSlider.disabled = true;
+      timeSlider.value = 0;
+      syncTimeSliderLabel('all');
+    }
+    if (vCount) vCount.textContent = '';
+    const vActive = document.getElementById('vActive');
+    if (vActive) vActive.innerHTML = 'Select date &amp; time to view Phase A / B / C';
+    updateDateRangeUI();
+
+    // KMZ/KML → network map; load profile → dates, times, Phase A/B/C
+    if (xlsF) {
+      log('Linking network (map) + load profile (voltage/time) for transformer analysis…', 'info');
+      voltageData = await parseExcel(xlsF);
+      availableDates = voltageData.dates || [];
+      dateSel.innerHTML = '';
+      // Always offer "All days" first when any dates exist
+      if (availableDates.length) {
+        const oAll = document.createElement('option');
+        oAll.value = 'all';
+        oAll.textContent = 'All days';
+        dateSel.appendChild(oAll);
+      }
+      availableDates.forEach(d => {
+        const o = document.createElement('option');
+        o.value = d; o.textContent = d; dateSel.appendChild(o);
+      });
+      updateDateRangeUI();
+      if (!availableDates.length) {
+        dateSel.innerHTML = '<option value="">No dates in profile</option>';
+        dateSel.disabled = true;
+        timeSel.disabled = true;
+        const ts = document.getElementById('timeSlider');
+        if (ts) { ts.disabled = true; ts.value = 0; }
+        setStatus('Network map ready · load profile had no voltage dates', true);
+        log('Network map OK. Load profile had no usable voltage dates.', 'info');
+      } else {
+        dateSel.disabled = false;
+        // Default to latest date in profile range
+        dateSel.value = availableDates[availableDates.length - 1];
+        populateTimeSel(dateSel.value);
+        showVoltages(dateSel.value);
+        const nTimes = Object.values(voltageData.times || {}).reduce((s, a) => s + a.length, 0);
+        setStatus('Ready · ' + Object.keys(voltageData.daily||{}).length + ' metered poles · ' +
+          availableDates.length + ' days' + (nTimes ? ' · time filter on' : ''), true);
+        log('KMZ network + load profile linked. Dates from profile: ' +
+          availableDates[0] + ' → ' + availableDates[availableDates.length - 1] +
+          '. Phase A/B/C update with date & time (incl. All days).', 'ok');
+      }
+    } else {
+      // Network-only mode — map fully usable without load profile
+      setStatus('Network map ready · load profile optional', true);
+      log('Network map from KMZ only. Upload matching load profile for Phase A/B/C by date & time.', 'ok');
+      if (vCount) vCount.textContent = 'Upload load profile to enable voltage date/time filters';
+    }
+    log('Complete.', 'ok');
+  } catch (e) {
+    log('ERROR: ' + e.message, 'err');
+    console.error(e);
+    alert(e.message);
+  } finally {
+    showLoading(false);
+    document.getElementById('processBtn').disabled = false;
+  }
+}
+
+function updateMatchStatus() {
+  const netF = document.getElementById('netFile').files[0];
+  const xlsF = document.getElementById('xlsFile').files[0];
+  document.getElementById('processBtn').disabled = !netF;
+  if (netF && xlsF) {
+    const check = filesMatch(netF.name, xlsF.name);
+    if (!check.ok) {
+      setStatus('Mismatch: network and load profile IDs differ', false);
+      log('Warning: ' + check.message.replace(/\n/g, ' | '), 'err');
+      return false;
+    }
+    setStatus('Pair OK · ' + check.key + ' — processing…', true);
+    log('Matched transformer key: ' + check.key + '. Auto-linking KMZ + load profile.', 'ok');
+    return true;
+  } else if (netF) {
+    const key = extractTxKey(netF.name);
+    setStatus(key ? ('Network: ' + key + ' (load profile optional)') : 'Network selected', false);
+  }
+  return false;
+}
+
+function setupDrop(zoneId, inputId, fnameId) {
+  const zone = document.getElementById(zoneId);
+  const input = document.getElementById(inputId);
+  input.addEventListener('change', () => {
+    if (input.files[0]) {
+      document.getElementById(fnameId).textContent = input.files[0].name;
+      zone.classList.add('has-file');
+      updateMatchStatus();
+      // Auto-process when network is ready and at least one of
+      // load-profile / feeder survey is also present, so all matching,
+      // classification, feeder colouring and voltage analysis run together.
+      const netReady = !!document.getElementById('netFile').files[0];
+      const xlsReady = !!document.getElementById('xlsFile').files[0];
+      const feederReady = !!(document.getElementById('feederFile') &&
+        document.getElementById('feederFile').files[0]);
+      const solarReady = !!(document.getElementById('solarFile') &&
+        document.getElementById('solarFile').files[0]);
+      if (netReady && (xlsReady || feederReady || solarReady)) {
+        if (xlsReady) {
+          const check = filesMatch(
+            document.getElementById('netFile').files[0].name,
+            document.getElementById('xlsFile').files[0].name
+          );
+          if (!check.ok) return;
+        }
+        process();
+      }
+    }
+  });
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault(); zone.classList.remove('dragover');
+    if (e.dataTransfer.files.length) {
+      input.files = e.dataTransfer.files;
+      input.dispatchEvent(new Event('change'));
+    }
+  });
+}
+setupDrop('netZone', 'netFile', 'netFname');
+setupDrop('xlsZone', 'xlsFile', 'xlsFname');
+if (document.getElementById('feederZone')) {
+  setupDrop('feederZone', 'feederFile', 'feederFname');
+}
+if (document.getElementById('solarZone')) {
+  setupDrop('solarZone', 'solarFile', 'solarFname');
+}
+document.getElementById('processBtn').addEventListener('click', process);
+document.getElementById('dateSel').addEventListener('change', function() {
+  populateTimeSel(this.value);
+  showVoltages(this.value);
+});
+document.getElementById('timeSel').addEventListener('change', function() {
+  setTimeControls(this.value, true);
+});
+document.getElementById('timeSlider').addEventListener('input', function() {
+  const slot = slotFromSliderIndex(Number(this.value));
+  setTimeControls(slot, true);
+});
+
+document.getElementById('chkNames').addEventListener('change', function() {
+  if (this.checked) nameMarkers.forEach(m => m.addTo(layers.names));
+  else layers.names.clearLayers();
+});
+document.getElementById('chkVolt').addEventListener('change', function() {
+  if (this.checked) voltLabelMarkers.forEach(m => m.addTo(layers.voltage));
+  else {
+    // remove only label markers; keep circles by redrawing
+    const d = document.getElementById('dateSel').value;
+    if (d) showVoltages(d);
+    if (!this.checked) {
+      voltLabelMarkers.forEach(m => layers.voltage.removeLayer(m));
+    }
+  }
+});
+document.getElementById('chkSolar').addEventListener('change', function() {
+  if (this.checked) solarMarkers.forEach(m => m.addTo(layers.solar));
+  else solarMarkers.forEach(m => layers.solar.removeLayer(m));
+});
+
+initMap();
+log('GridVision online. Network file alone is enough for the map. Load profile, feeder survey and solar report are all optional add-ons.', 'info');
+</script>
+</body>
+</html>

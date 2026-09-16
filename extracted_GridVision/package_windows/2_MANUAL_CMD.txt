@@ -1,0 +1,22 @@
+MANUAL START (if bat still fails)
+
+1. Press Win key, type:  cmd
+2. Press Enter
+
+3. Copy this whole block and paste into cmd, then Enter:
+
+cd /d "%USERPROFILE%\Desktop\New folder (3)\GridVision_OpenDSS_Windows (3)\package_windows"
+py -3 -m venv .venv
+call .venv\Scripts\activate.bat
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+python -m uvicorn app:app --host 127.0.0.1 --port 8000
+
+If "cd" fails because folder name is different:
+  - Type:  cd /d 
+  - Then drag the package_windows folder into the cmd window
+  - Press Enter
+  - Then run the py/pip/uvicorn lines above
+
+4. Open browser:  http://127.0.0.1:8000/
+5. Leave cmd window open

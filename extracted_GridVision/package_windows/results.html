@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BZ0109 — Full Calculated Results</title>
+<style>
+  :root{--bg:#0b1220;--card:#111827;--border:#1f2a44;--text:#e5eefc;--muted:#94a3b8;--accent:#22d3ee;--ok:#34d399;--violet:#818cf8}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Segoe UI,system-ui,sans-serif;background:var(--bg);color:var(--text);padding:20px;line-height:1.45}
+  a{color:var(--accent);text-decoration:none}
+  h1{font-size:22px;margin-bottom:4px}
+  h2{font-size:15px;color:var(--accent);margin:18px 0 10px;border-bottom:1px solid var(--border);padding-bottom:6px}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:16px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:12px}
+  .metric{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px}
+  .metric .lbl{font-size:11px;color:var(--muted);text-transform:uppercase}
+  .metric .val{font-size:20px;font-weight:700;margin-top:4px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th,td{padding:6px 8px;text-align:right;border-bottom:1px solid #1a2438}
+  th{color:var(--muted);font-weight:600;text-align:right;position:sticky;top:0;background:var(--card)}
+  td:first-child,th:first-child{text-align:left}
+  .pos{color:var(--ok)}.neg{color:#f87171}
+  canvas{width:100%;max-height:220px;background:#0a1020;border-radius:8px}
+  .nav{margin-bottom:14px}
+  .badge{display:inline-block;padding:2px 8px;border-radius:99px;background:rgba(34,211,153,.15);color:var(--ok);font-size:11px;font-weight:600}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:800px){.two{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <div class="nav"><a href="/">← Map & controls</a> &nbsp;·&nbsp; <a href="/methodology">How calculated (steps)</a></div>
+  <h1>BZ0109 — Full Calculated Results</h1>
+  <div class="sub" id="subtitle">Loading…</div>
+
+  <div class="grid" id="metrics"></div>
+
+  <div class="two">
+    <div class="card" id="peakCard"><h2 style="margin-top:0">Peak (max import)</h2><div id="peakBody">—</div></div>
+    <div class="card" id="noonCard"><h2 style="margin-top:0">Solar noon (max export)</h2><div id="noonBody">—</div></div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Daily net power — measured vs simulated</h2>
+    <canvas id="chart" height="200"></canvas>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Network summary by feeder</h2>
+    <table id="feederTable">
+      <thead><tr><th>Feeder</th><th>Poles</th><th>Load (kW avg)</th><th>Solar inv (kW)</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Full-day QSTS (15‑min)</h2>
+    <div class="sub">Meas = transformer meter · Sim = OpenDSS export-target locked model</div>
+    <table id="qstsTable">
+      <thead>
+        <tr>
+          <th>Time</th><th>Meas kW</th><th>Sim kW</th><th>Error</th>
+          <th>Solar kW</th><th>Meas V</th><th>Sim V</th><th>TF %</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Model settings</h2>
+    <pre id="settings" style="font-size:12px;color:#cbd5e1;white-space:pre-wrap"></pre>
+  </div>
+
+<script>
+function fmt(n,d=1){return n==null||n===undefined?'—':Number(n).toFixed(d)}
+function rowHtml(label, obj){
+  if(!obj) return '—';
+  return `<div style="font-size:13px;line-height:1.7">
+    <div><b>Time</b> ${obj.time||'—'}</div>
+    <div><b>Measured net</b> ${fmt(obj.meas_kw)} kW</div>
+    <div><b>Simulated net</b> ${fmt(obj.sim_kw)} kW</div>
+    <div><b>Solar set</b> ${fmt(obj.solar_kw)} kW</div>
+    <div><b>V meas / sim</b> ${fmt(obj.meas_V,1)} / ${fmt(obj.sim_V,1)} V</div>
+    <div><b>TF loading</b> ${fmt(obj.loading_pct,1)}%</div>
+  </div>`;
+}
+
+function drawChart(qsts){
+  const c=document.getElementById('chart');
+  const ctx=c.getContext('2d');
+  const w=c.width=c.clientWidth*2; const h=c.height=200*2;
+  ctx.clearRect(0,0,w,h);
+  if(!qsts.length) return;
+  const meas=qsts.map(q=>q.meas_kw), sim=qsts.map(q=>q.sim_kw);
+  const all=meas.concat(sim); const ymin=Math.min(...all)-15, ymax=Math.max(...all)+15;
+  const n=qsts.length;
+  const Y=v=>h-30-((v-ymin)/(ymax-ymin))*(h-50);
+  const X=i=>40+(i/(n-1))*(w-60);
+  // zero line
+  ctx.strokeStyle='#334155'; ctx.lineWidth=1; ctx.beginPath();
+  ctx.moveTo(40,Y(0)); ctx.lineTo(w-20,Y(0)); ctx.stroke();
+  // meas
+  ctx.strokeStyle='#22d3ee'; ctx.lineWidth=2.5; ctx.beginPath();
+  meas.forEach((v,i)=>{const x=X(i),y=Y(v); i?ctx.lineTo(x,y):ctx.moveTo(x,y)}); ctx.stroke();
+  // sim
+  ctx.strokeStyle='#818cf8'; ctx.lineWidth=2.5; ctx.beginPath();
+  sim.forEach((v,i)=>{const x=X(i),y=Y(v); i?ctx.lineTo(x,y):ctx.moveTo(x,y)}); ctx.stroke();
+  // legend
+  ctx.fillStyle='#22d3ee'; ctx.fillRect(w-200,16,16,4);
+  ctx.fillStyle='#e2e8f0'; ctx.font='22px sans-serif'; ctx.fillText('Measured', w-178, 24);
+  ctx.fillStyle='#818cf8'; ctx.fillRect(w-200,40,16,4);
+  ctx.fillStyle='#e2e8f0'; ctx.fillText('Simulated', w-178, 48);
+}
+
+fetch('/full_results.json')
+  .then(r=>r.json())
+  .then(d=>{
+    document.getElementById('subtitle').innerHTML =
+      `Day <b>${d.day||'—'}</b> (${d.day_type||''}) · <span class="badge">${d.model||'locked model'}</span>`;
+    const m=d.metrics||{};
+    const nw=d.network||{};
+    document.getElementById('metrics').innerHTML = [
+      ['Correlation', fmt(m.corr,3)],
+      ['RMSE power', fmt(m.rmse_kw,1)+' kW'],
+      ['RMSE voltage', fmt(m.rmse_V,1)+' V'],
+      ['Solar inv', fmt(d.solar_inv_kw,1)+' kW'],
+      ['Net-metered', d.net_metered_accounts??'—'],
+      ['Poles / lines', (nw.poles||'—')+' / '+(nw.lines||'—')],
+      ['Total load (avg)', fmt(nw.total_load_kw,1)+' kW'],
+      ['Total solar', fmt(nw.total_solar_kw,1)+' kW'],
+    ].map(([l,v])=>`<div class="metric"><div class="lbl">${l}</div><div class="val">${v}</div></div>`).join('');
+
+    document.getElementById('peakBody').innerHTML = rowHtml('Peak', d.peak);
+    document.getElementById('noonBody').innerHTML = rowHtml('Noon', d.noon);
+    document.getElementById('settings').textContent = JSON.stringify(d.settings||{}, null, 2);
+
+    // feeder table
+    const tb=document.querySelector('#feederTable tbody');
+    const counts=nw.feeder_pole_counts||{};
+    const loads=nw.feeder_load_kw||{};
+    const sol=nw.feeder_solar_kw||{};
+    Object.keys(counts).sort().forEach(f=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td>${f}</td><td>${counts[f]}</td><td>${fmt(loads[f],2)}</td><td>${fmt(sol[f],2)}</td>`;
+      tb.appendChild(tr);
+    });
+
+    // qsts table
+    const qb=document.querySelector('#qstsTable tbody');
+    (d.qsts||[]).forEach(q=>{
+      const err=(q.sim_kw??0)-(q.meas_kw??0);
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td>${q.time}</td>
+        <td class="${q.meas_kw<0?'neg':'pos'}">${fmt(q.meas_kw)}</td>
+        <td class="${q.sim_kw<0?'neg':'pos'}">${fmt(q.sim_kw)}</td>
+        <td>${fmt(err)}</td>
+        <td>${fmt(q.solar_kw)}</td>
+        <td>${fmt(q.meas_V,1)}</td>
+        <td>${fmt(q.sim_V,1)}</td>
+        <td>${fmt(q.loading_pct,1)}</td>`;
+      qb.appendChild(tr);
+    });
+
+    drawChart(d.qsts||[]);
+    window.addEventListener('resize', ()=>drawChart(d.qsts||[]));
+  })
+  .catch(e=>{
+    document.getElementById('subtitle').textContent = 'Failed to load results: '+e.message;
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,352 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>GRIDVISION Final Full Methodology</title>
+<style>
+body{font-family:system-ui,sans-serif;background:#0b1220;color:#e2e8f0;padding:24px;max-width:960px;margin:0 auto;line-height:1.55}
+.card{background:#111827;border:1px solid #243247;border-radius:12px;padding:16px;margin:12px 0}
+table{width:100%;border-collapse:collapse;font-size:13px} th,td{padding:8px;border-bottom:1px solid #243247;text-align:left}
+th{color:#94a3b8;font-size:11px;text-transform:uppercase}
+pre{background:#0a1020;padding:12px;border-radius:8px;overflow:auto;border:1px solid #243247}
+.note,.sub{color:#94a3b8} h1,h2,h3{color:#e2e8f0} ul,ol{padding-left:18px}
+</style></head><body><div id="methodologyRoot" style="max-width:960px;margin:0 auto;padding:12px 8px 56px">
+
+    <div style="text-align:center;margin-bottom:18px">
+      <div style="font-size:12px;font-weight:800;letter-spacing:0.2em;color:var(--accent)">GRIDVISION</div>
+      <h1 style="margin:10px 0 8px;font-size:26px;color:var(--text)">Final full methodology</h1>
+      <p class="sub" style="max-width:720px;margin:0 auto">BZ0109 LV study (including power-flow calculation and balancing). Short summary tables first, then Parts A–L in full.</p>
+    </div>
+
+    <div class="card" style="border:1px solid var(--accent)">
+      <h2 style="margin-top:0">Short summary — pipeline</h2>
+      <table>
+        <tr><th>Step</th><th>Action</th></tr>
+        <tr><td>1</td><td>GIS + DATA + LP + solar</td></tr>
+        <tr><td>2</td><td>Topology: feeders, distance TF = 0 m</td></tr>
+        <tr><td>3</td><td>Tariff loads + net-meter PV</td></tr>
+        <tr><td>4</td><td>Calibrate TF net to measured LP</td></tr>
+        <tr><td>5</td><td>QSTS 96×: power balance + power flow</td></tr>
+        <tr><td>6</td><td>Metrics, pole V, distance plot, map</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Short summary — load flow</h2>
+      <table>
+        <tr><th>Condition</th><th>TF net</th><th>Voltage</th></tr>
+        <tr><td>Evening peak</td><td>Import &gt; 0</td><td>Drop along feeder</td></tr>
+        <tr><td>Solar noon</td><td>Export possible &lt; 0</td><td>Rise at remote PV</td></tr>
+        <tr><td>Light load</td><td>Small import</td><td>Near nominal</td></tr>
+      </table>
+      <p class="note">Always: generation + import = load + export + losses.</p>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Short summary — tariffs</h2>
+      <table>
+        <tr><th>Tariff</th><th>Model</th><th>Behaviour</th></tr>
+        <tr><td>R1, R2, D1</td><td>Constant current</td><td>Evening peak</td></tr>
+        <tr><td>GP11, GP12, GP1-G</td><td>Constant current</td><td>Daytime commercial</td></tr>
+        <tr><td>STL1, STL2</td><td>Constant current</td><td>After dark</td></tr>
+        <tr><td>I12</td><td>Constant power</td><td>Industrial</td></tr>
+      </table>
+    </div>
+
+    <div style="text-align:center;margin:28px 0 12px">
+      <h2 style="margin:0;font-size:22px;color:var(--text)">Complete methodology — Parts A–L</h2>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Part A — Purpose and scope</h2>
+      <p>GridVision builds a digital model of the <b>BZ0109</b> low-voltage network and runs a <b>quasi-static time series (QSTS)</b> every <b>15 minutes</b> for a chosen day.</p>
+      <p><b>Questions answered</b></p>
+      <ul>
+        <li>Transformer net power (import vs export) vs the measured load profile (LP)</li>
+        <li>Phase voltages at poles (measured where meters exist, simulated everywhere)</li>
+        <li>Loading of the transformer and voltage risk vs <b>216.2 V – 243.8 V</b> (nominal ~230 V)</li>
+      </ul>
+      <p><b>Not in scope:</b> electromechanical transients; fault currents; protection coordination; live SCADA control.</p>
+      <p><b>Ratings (this case)</b></p>
+      <ul>
+        <li>Transformer capacity: <b>250 kVA</b> (typical options: 100 / 160 / 250 / 400 / 630 kVA)</li>
+        <li>Nominal LV: ~230 V phase-to-neutral / ~400 V line-to-line</li>
+        <li>App voltage band: 216.2 V – 243.8 V</li>
+        <li>Time steps: 96 per day (15 min)</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Part B — Input data and preparation</h2>
+      <table>
+        <tr><th>Source</th><th>What is used</th></tr>
+        <tr><td>GIS / KMZ</td><td>Poles, coordinates, line segments, connectivity</td></tr>
+        <tr><td>DATA (billing)</td><td>Account → pole, tariff category, monthly kWh</td></tr>
+        <tr><td>Load profile</td><td>15-min TF net kW, optional phase voltages, list of study days</td></tr>
+        <tr><td>Solar report</td><td>Account, pole, inverter kW</td></tr>
+      </table>
+      <p style="margin-top:10px"><b>Preparation rules</b></p>
+      <ul>
+        <li>Match accounts after stripping leading zeros</li>
+        <li>Parse billing by column headers (not fixed positions)</li>
+        <li>Billing cycle codes (e.g. 202506, 202512) identify monthly energy columns</li>
+        <li>Same account in billing + solar ⇒ net-metered</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Part C — Network topology</h2>
+      <ol>
+        <li>Poles = nodes; lines = edges</li>
+        <li>Transformer pole = source (distance 0 m)</li>
+        <li>Each first hop from the TF starts a feeder (F1, F2, …)</li>
+        <li>BFS labels every downstream pole with one feeder (radial LV)</li>
+        <li>Distance d = path length along lines from TF (m); geographic fallback if a GIS edge is missing</li>
+      </ol>
+      <pre style="white-space:pre-wrap">d(TF) = 0
+d(k) = Σ length on path TF → k</pre>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Part D — Tariff categories, load models, shapes</h2>
+      <p><b>Default mapping</b></p>
+      <table>
+        <tr><th>Tariff</th><th>Load model</th><th>Typical daily behaviour</th></tr>
+        <tr><td>R1, R2, D1</td><td>Constant current</td><td>Residential: evening peak</td></tr>
+        <tr><td>GP11, GP12, GP1-G</td><td>Constant current</td><td>More daytime commercial</td></tr>
+        <tr><td>STL1, STL2</td><td>Constant current</td><td>Higher after dark</td></tr>
+        <tr><td>I12</td><td>Constant power</td><td>Industrial / flatter or shift-based</td></tr>
+      </table>
+      <p style="margin-top:10px"><b>Load model meaning</b></p>
+      <ul>
+        <li>Constant power: P fixed ⇒ I ≈ P/V (current rises if V falls)</li>
+        <li>Constant current: I roughly fixed ⇒ P ∝ V (milder drop feedback)</li>
+      </ul>
+      <p>Future tariffs: default to constant current unless clearly industrial; UI may allow override.</p>
+      <p><b>From monthly energy to power</b></p>
+      <pre style="white-space:pre-wrap">P_avg,c = E_month,c / (N_days × 24)</pre>
+      <p><b>Shaped customer load</b></p>
+      <pre style="white-space:pre-wrap">P_c(t) = P_avg,c · s_tariff(c)(t) · α(t)</pre>
+      <ul>
+        <li>s_tariff: normalised shape (96 steps/day; weekday / weekend / holiday can differ)</li>
+        <li>α(t): global day/night scale so the sum of loads can track the measured TF day</li>
+      </ul>
+      <p><b>Total load</b></p>
+      <pre style="white-space:pre-wrap">P_load(t) = P_base + Σ_c P_c(t)</pre>
+      <p>P_base: optional unmetered / loss / overnight floor.</p>
+      <p><b>Phase allocation:</b> single-phase customers may sit on A, B, or C; three-phase where applicable. Unknown phases are assigned so the feeder is not artificially perfectly balanced.</p>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Part E — Solar and net-metering</h2>
+      <pre style="white-space:pre-wrap">P_pv,i(t) = P_inv,i · c_irr(t) · β
+P_pv(t) = Σ_i P_pv,i(t)</pre>
+      <ul>
+        <li>c_irr(t): daytime irradiance-like curve (~0 at night, peak near solar noon)</li>
+        <li>β: export / calibration scale</li>
+      </ul>
+      <p>Net-metered (same account in billing + solar): meter = import − export. Gross load is reconstructed conceptually so PV is not ignored:</p>
+      <pre style="white-space:pre-wrap">P_gross ≈ P_net + P_inv · CF · σ</pre>
+      <ul>
+        <li>CF (Sri Lanka rooftop) ≈ 14–18% annual</li>
+        <li>σ = self-consumption fraction (lower ⇒ more noon export)</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Part F — Power-flow calculation and balancing (core procedure)</h2>
+      <p>This is the electrical heart of the methodology.</p>
+
+      <h3>F1. What “power flow” means here</h3>
+      <p>At one time t, the network is treated as <b>steady-state</b>:</p>
+      <ul>
+        <li>Known (or assumed) voltages at the source (TF LV bus)</li>
+        <li>Known load and PV injections at poles</li>
+        <li>Lines with impedance</li>
+        <li>Solve for branch currents, pole voltages, and power through the transformer</li>
+      </ul>
+      <p>QSTS = repeat that steady solve (or an equivalent estimate) 96 times per day.</p>
+
+      <h3>F2. Power balance at the transformer (global balance)</h3>
+      <p>All active power must balance at the LV study boundary (ignoring storage):</p>
+      <pre style="white-space:pre-wrap">P_TF,net(t) + P_pv(t) = P_load(t) + P_loss(t)
+
+P_TF,net(t) ≈ P_load(t) − P_pv(t) + P_loss(t)
+(import positive into LV)</pre>
+      <p><b>Interpretation</b></p>
+      <table>
+        <tr><th>Situation</th><th>Balance</th><th>P_TF,net</th></tr>
+        <tr><td>Evening peak, no PV</td><td>Load supplied from MV</td><td>Import &gt; 0</td></tr>
+        <tr><td>High noon PV</td><td>PV supplies loads; surplus leaves LV</td><td>Export &lt; 0</td></tr>
+        <tr><td>Light load, no PV</td><td>Small import</td><td>Small positive</td></tr>
+      </table>
+      <ul>
+        <li>Losses P_loss are usually a few percent of throughput; some simplified UI paths fold them into residual calibration rather than computing every branch I²R.</li>
+        <li>Reactive power (detailed OpenDSS): a similar balance exists for Q; loads may use pf ≈ 0.95. Many planning displays focus on P and |V|.</li>
+      </ul>
+
+      <h3>F3. Step-by-step power-flow procedure (one time step t)</h3>
+      <p><b>Step 1 — Fix the study time</b><br>Pick t (e.g. 19:00). All shapes and meters refer to that interval.</p>
+      <p><b>Step 2 — Assemble nodal injections</b></p>
+      <pre style="white-space:pre-wrap">P_k^inj(t) = P_pv,k(t) − P_load,k(t)</pre>
+      <ul>
+        <li>PV = positive injection into the node</li>
+        <li>Load = withdrawal</li>
+        <li>Three-phase: split by A/B/C if single-phase customers are phase-allocated</li>
+      </ul>
+      <p><b>Step 3 — Set the source boundary (slack bus)</b><br>Transformer LV bus is the slack / reference:</p>
+      <ul>
+        <li>|V_TF(t)| from measurement if available, else nominal (~230 V phase-neutral / 400 V line-line)</li>
+        <li>Angle reference 0</li>
+        <li>TF supplies whatever P+jQ is needed to close the balance (rating checked afterwards)</li>
+      </ul>
+      <p><b>Step 4 — Line electrical model</b><br>Preferred (4-wire LV):</p>
+      <pre style="white-space:pre-wrap">[Va Vb Vc Vn]^T = Z_4×4 · [Ia Ib Ic In]^T
+(primitive impedance including neutral and mutual terms)
+
+ΔV_branch ≈ Z_branch · I_branch</pre>
+      <p>Simplified 3-wire omits neutral → less accurate for unbalance.</p>
+      <p><b>Step 5 — Load electrical model at nodes</b></p>
+      <pre style="white-space:pre-wrap">Constant power (e.g. I12):
+  S = P+jQ = fixed  ⇒  I = (S/V)*
+
+Constant current (most domestic/GP tariffs):
+  I ≈ fixed model  ⇒  P ≈ |V||I|cosφ</pre>
+      <p>Iterate if using full nonlinear power flow (powers depend on voltages).</p>
+      <p><b>Step 6 — Solve the network equations</b><br>Full OpenDSS-style Newton / fixed-point power flow:</p>
+      <ol>
+        <li>Initialise voltages (e.g. all equal to V_TF)</li>
+        <li>From voltages, compute load and PV currents</li>
+        <li>Apply KCL at each node (currents sum to zero with branch currents)</li>
+        <li>Update voltages from Z, I</li>
+        <li>Repeat until power mismatches and voltage changes are small</li>
+      </ol>
+      <p>Outputs: V_k,φ(t), branch currents, P_TF,net(t), losses, phase unbalance.</p>
+      <p><b>Calibrated radial estimate</b> (UI path when full solve is not run):</p>
+      <ol>
+        <li>Compute fleet P_load(t), P_pv(t)</li>
+        <li>Form P_sim,raw(t) = P_load − P_pv (+ residual/scale — Part G)</li>
+        <li>Approximate voltage along path: V_k(t) ≈ V_TF(t) − ΔV(d_k, P_TF,net(t), P_downstream,k)</li>
+        <li>Under export, ΔV can reverse → remote voltage rise</li>
+      </ol>
+      <p>This preserves topology + distance + measured TF power shape for maps and distance–voltage plots.</p>
+      <p><b>Step 7 — Local and global checks (balancing verification)</b></p>
+      <pre style="white-space:pre-wrap">Global: P_TF,net ≈ P_load − P_pv + P_loss
+Local: line powers + load − PV ≈ 0
+Phase: Ia + Ib + Ic + In ≈ 0
+Thermal/voltage: |P_TF| vs S_rated; V vs 216.2 / 243.8 V</pre>
+
+      <h3>F4. Balancing through the day</h3>
+      <p><b>Night / early morning:</b> PV ≈ 0 → P_TF,net ≈ P_load + P_loss → import. Currents TF → feeders. Voltage generally drops with distance.</p>
+      <p><b>Solar noon:</b> P_pv large → if P_pv &gt; P_load + P_loss → export. Current can flow feeders → TF → MV. Voltage at PV-rich remote poles can rise.</p>
+      <p><b>Evening peak:</b> PV ≈ 0, residential/GP peaks → maximum import, often minimum remote voltage, highest TF loading %.</p>
+      <p><b>Always:</b> generation + import = load + export + losses (import/export = TF terminal net exchange with MV).</p>
+
+      <h3>F5. Transformer loading after the solve</h3>
+      <pre style="white-space:pre-wrap">L% ≈ |P_TF,net| / S_rated × 100
+If Q known: L% = |S_TF| / S_rated × 100</pre>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Part G — Matching the measured meter (calibration)</h2>
+      <p>Measured LP: P_meas(t).</p>
+      <pre style="white-space:pre-wrap">P_sim,raw(t) = P_load(t) − P_pv(t)
+P_sim(t) = α(t) · P_sim,raw(t) + r(t)</pre>
+      <p>Day/night α and residual r reduce error vs P_meas.</p>
+      <p><b>Export-target (locked)</b></p>
+      <pre style="white-space:pre-wrap">P_pv*(t) = max(P_load(t) − P_meas(t), 0)</pre>
+      <p>Allocate P_pv* proportional to inverter ratings, then re-solve / re-estimate voltages.</p>
+      <p>Use: match a real measured day. For pure what-if hosting studies: drive PV by irradiance × inverter only (export-target off).</p>
+      <p><b>Metrics</b></p>
+      <pre style="white-space:pre-wrap">corr = corrcoef(P_meas, P_sim)
+RMSE_kW = √ mean((P_sim − P_meas)²)
+RMSE_V  = √ mean((V_sim − V_meas)²)</pre>
+      <table>
+        <tr><th>Pattern</th><th>Likely issue</th></tr>
+        <tr><td>High corr, high RMSE</td><td>Scale / magnitude</td></tr>
+        <tr><td>Low corr</td><td>Wrong peak or solar timing (shapes)</td></tr>
+        <tr><td>Good power, bad voltage</td><td>Impedance, phase allocation, or V_TF</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Part H — QSTS procedure (full day)</h2>
+      <p>For each t ∈ {00:00, 00:15, …, 23:45}:</p>
+      <ol>
+        <li>Build P_c(t) from tariff shapes and scales</li>
+        <li>Build P_pv(t) (shape or export-target)</li>
+        <li>Power balance + power flow (Part F)</li>
+        <li>Store P_sim, V_k,φ, L%</li>
+      </ol>
+      <ul>
+        <li>Peak snapshot: max import</li>
+        <li>Solar-noon snapshot: min net / max export</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Part I — Pole voltages and plots</h2>
+      <table>
+        <tr><th>Type</th><th>Source</th></tr>
+        <tr><td>Measured</td><td>LP at instrumented poles/times (often one phase only)</td></tr>
+        <tr><td>Simulated</td><td>Power-flow / radial estimate for Va, Vb, Vc</td></tr>
+      </table>
+      <ul>
+        <li>Distance–voltage: X = distance from TF, Y = V; dots per phase; limits 216.2 and 243.8 V dashed</li>
+        <li>Map heat map: same voltages vs limits at the time-slider instant</li>
+        <li>Phase colours: A blue · B orange · C purple</li>
+        <li>Tables: measured ≈ teal; simulated ≈ violet</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Part J — End-to-end procedure (operator + algorithm)</h2>
+      <ol>
+        <li>Load GIS → topology, feeders, distances</li>
+        <li>Load DATA → pole placement, tariff → model + shape, P_avg</li>
+        <li>Load LP → P_meas(t), study day, sparse V_meas</li>
+        <li>Load solar → PV size, net-meter flags</li>
+        <li>For each 15-min step: assemble loads &amp; PV; enforce power balance / run power flow; calibrate to meter if required; save voltages and TF power</li>
+        <li>Compute corr, RMSE, peak, noon</li>
+        <li>Display charts, tables, distance plot, map</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Part K — Equation sheet</h2>
+      <pre style="white-space:pre-wrap">P_avg,c = E_month,c / (N_days · 24)
+P_c(t) = P_avg,c · s_tariff(c)(t) · α(t)
+P_load = P_base + Σ_c P_c
+P_pv,i = P_inv,i · c_irr · β
+P_TF,net ≈ P_load − P_pv + P_loss
+V_abcn = Z_4×4 · I_abcn
+V_k ≈ V_TF − ΔV(d_k, …)
+L% ≈ |P_TF,net| / S_rated × 100
+P_pv* = max(P_load − P_meas, 0)   (locked)
+RMSE_kW = √ mean((P_sim − P_meas)²)
+RMSE_V  = √ mean((V_sim − V_meas)²)</pre>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Part L — Limitations</h2>
+      <ul>
+        <li>Shapes are by tariff class, not every customer’s true 15-min meter</li>
+        <li>Export-target matches the meter strongly; use irradiance-only PV for pure what-if studies</li>
+        <li>Simplified radial voltage is not a full unbalanced 4-wire legal audit</li>
+        <li>Q and exact losses may be approximated</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Final summary</h2>
+      <table>
+        <tr><th>Pillar</th><th>Role</th></tr>
+        <tr><td>Data</td><td>GIS, billing, LP, solar → who, where, when, how much</td></tr>
+        <tr><td>Topology</td><td>Feeders + distance from TF</td></tr>
+        <tr><td>Tariffs</td><td>Load model + daily shape per class</td></tr>
+        <tr><td>Solar / net-meter</td><td>Daytime injection and export behaviour</td></tr>
+        <tr><td>Power flow &amp; balancing</td><td>Ohm + KCL; P_TF + P_pv = P_load + P_loss</td></tr>
+        <tr><td>Calibration</td><td>Align P_sim to measured P_meas</td></tr>
+        <tr><td>QSTS</td><td>Repeat every 15 min → full-day curves, map, distance plot</td></tr>
+      </table>
+    </div>
+
+    <p class="note" style="text-align:center;margin-top:18px">GRIDVISION · BZ0109 · Final full methodology · Parts A–L · Methodology tab only</p>
+  </div>
+</div></body></html>

@@ -1,0 +1,12 @@
+COPY AND PASTE INTO CMD (all lines):
+
+cd /d "%USERPROFILE%\Desktop\New folder (3)\GridVision_OpenDSS_Windows (3)\package_windows"
+py -3 -m venv .venv
+call .venv\Scripts\activate.bat
+pip install fastapi "uvicorn[standard]" python-multipart
+python -m uvicorn app:app --host 127.0.0.1 --port 8000
+
+Then open browser: http://127.0.0.1:8000/
+
+If cd fails, type:  cd /d 
+then DRAG the package_windows folder into cmd and press Enter.

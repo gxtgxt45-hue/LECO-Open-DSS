@@ -1,0 +1,28 @@
+If 1_START_HERE.bat still fails, use these steps manually.
+
+A. Extract the ZIP to Desktop (Extract All) - do not open inside WinRAR
+
+B. Open Command Prompt:
+   Win key, type cmd, Enter
+
+C. Copy and paste these commands ONE BY ONE (change path if needed):
+
+cd /d %USERPROFILE%\Desktop\package_windows
+
+If your folder name is different, drag the package_windows folder
+into the cmd window after typing:  cd /d 
+then press Enter.
+
+D. Then run:
+
+py -3 -m venv .venv
+.venv\Scripts\activate
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+python -m uvicorn app:app --host 127.0.0.1 --port 8000
+
+E. Open Chrome or Edge and go to:
+
+http://127.0.0.1:8000/
+
+F. Leave the Command Prompt open.
