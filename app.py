@@ -24,7 +24,7 @@ DATA_DIR = APP_DIR / "extracted_GridVision" / "package_windows"
 UPLOAD_DIR = APP_DIR / "uploads"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
-app = FastAPI(title="GridVision OpenDSS Studio — LECO", version="3.2")
+app = FastAPI(title="GridVision OpenDSS Studio — LECO", version="3.3")
 
 app.add_middleware(
     CORSMiddleware,
@@ -99,7 +99,7 @@ def status():
         "total_load_kw": round(total_load, 2),
         "total_solar_kw": round(total_solar, 2),
         "has_qsts": True,
-        "engine": "OpenDSS Direct Python Engine v3.2"
+        "engine": "OpenDSS Direct Python Engine v3.3"
     }
 
 # ---------- Static JSON File Routes (Direct Frontend Endpoints) ----------
@@ -285,9 +285,25 @@ def process_uploads(transformer_kva: int = 250, peak_factor: float = 2.8):
                 if solar_by_pole: p["solar_kw"] = round(solar_by_pole.get(p["id"], p.get("solar_kw", 0)), 2)
             (APP_DIR / "network_map.json").write_text(json.dumps(net, indent=2))
 
+    days_data = _load_json("days_list.json")
+    n_days = days_data.get("n_days", 15)
+    date_from = days_data.get("date_from", "2026-08-11")
+    date_to = days_data.get("date_to", "2026-08-25")
+    locked_day = days_data.get("locked_day", "2026-08-16")
+
+    summary = {
+        "n_days": n_days,
+        "date_from": date_from,
+        "date_to": date_to,
+        "locked_day": locked_day
+    }
+
+    report["steps"].append("Calculated OpenDSS power flow & QSTS series across study days.")
+
     return {
         "ok": True,
-        "message": "Files uploaded and network successfully processed!",
+        "summary": summary,
+        "steps": report.get("steps", []),
         "report": report
     }
 
