@@ -2944,7 +2944,7 @@ function drawChart(qsts){ drawResultsChart(qsts); }
 
 
 
-loadFullResultsForDay(selectedDate && selectedDate() || "") || (window.EMBEDDED_FULL_RESULTS ? Promise.resolve(window.EMBEDDED_FULL_RESULTS) : fetch('/full_results.json').then(r=>r.json()))
+(typeof loadFullResultsForDay === "function" ? loadFullResultsForDay(typeof selectedDate === "function" ? selectedDate() : "") : (window.EMBEDDED_FULL_RESULTS ? Promise.resolve(window.EMBEDDED_FULL_RESULTS) : fetch('/full_results.json').then(r=>r.json())))
   .then(d=>{
     document.getElementById('subtitle').innerHTML =
       `Day <b>${d.day||'—'}</b> (${d.day_type||''}) · <span class="badge">${d.model||'locked model'}</span>`;
