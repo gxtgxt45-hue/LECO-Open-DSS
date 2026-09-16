@@ -4139,7 +4139,6 @@ function syncResultsDateSelect(selected){
     sel.appendChild(o);
   }
   const pill = document.getElementById("resultsDayPill");
-    if(typeof syncResultsDateSelect==="function") syncResultsDateSelect(date||window.activeDay);
   if(pill) pill.textContent = sel.value || "—";
 }
 
