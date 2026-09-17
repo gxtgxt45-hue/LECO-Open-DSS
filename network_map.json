@@ -909,7 +909,7 @@
       "lat": 7.046215791913089,
       "lon": 79.89228230778261,
       "feeder": "F6",
-      "load_kw": 0.44,
+      "load_kw": 1.77,
       "solar_kw": 0,
       "is_tf": false,
       "V_peak": {
@@ -2826,8 +2826,8 @@
       "lat": 7.045814592703674,
       "lon": 79.89479232107205,
       "feeder": "F2",
-      "load_kw": 0.4,
-      "solar_kw": 5.5,
+      "load_kw": 1.06,
+      "solar_kw": 4.77,
       "is_tf": false,
       "V_peak": {
         "Va": 225.2,
@@ -2988,7 +2988,7 @@
       "lat": 7.045789619243992,
       "lon": 79.89551379650243,
       "feeder": "F1",
-      "load_kw": 0,
+      "load_kw": 0.14,
       "solar_kw": 0,
       "is_tf": false,
       "V_peak": {
@@ -3150,7 +3150,7 @@
       "lat": 7.045738465644032,
       "lon": 79.89528097836984,
       "feeder": "F1",
-      "load_kw": 0.23,
+      "load_kw": 7.21,
       "solar_kw": 0,
       "is_tf": false,
       "V_peak": {

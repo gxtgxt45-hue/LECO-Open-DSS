@@ -178,6 +178,77 @@ def get_volt_topo():
 def get_days_list():
     return _json_endpoint("days_list.json")
 
+def clean_nans(obj):
+    if isinstance(obj, float):
+        if math.isnan(obj) or math.isinf(obj):
+            return None
+        return obj
+    elif isinstance(obj, dict):
+        return {k: clean_nans(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [clean_nans(v) for v in obj]
+    return obj
+
+@app.get("/api/pole_voltage_compare")
+def api_pole_voltage_compare(date: str = Query(None), pole: str = Query(None), max_rows: int = Query(400)):
+    max_rows = max(50, min(int(max_rows or 400), 10000))
+    try:
+        path = APP_DIR / "pole_voltage_compare.json"
+        if not path.exists():
+            return JSONResponse({"ok": False, "error": "pole_voltage_compare.json missing"}, status_code=404)
+        data = json.loads(path.read_text(encoding="utf-8"))
+        days = data.get("days") or {}
+        clean_date = str(date).split(" ")[0].split("·")[0].strip() if date else None
+        day = clean_date or (sorted(days.keys())[0] if days else "2026-08-11")
+        
+        block = days.get(day) or (list(days.values())[0] if days else {})
+        rows = block.get("rows") or []
+        if pole:
+            rows = [r for r in rows if str(r.get("pole")) == str(pole)]
+        if len(rows) > max_rows:
+            step = max(1, len(rows) // max_rows)
+            rows = rows[::step][:max_rows]
+            
+        poles_list = [str(p) for p in (block.get("poles") or []) if str(p) != "nan"]
+        if not poles_list and rows:
+            poles_list = sorted(list(set(str(r.get("pole")) for r in rows if r.get("pole"))))
+
+        res = {
+            "ok": True,
+            "day": day,
+            "poles": poles_list,
+            "summary": block.get("summary") or [],
+            "rows": rows,
+            "n_rows": len(block.get("rows") or []),
+            "source": data.get("source", "pole_voltage_compare.json"),
+        }
+        return clean_nans(res)
+    except Exception as e:
+        return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
+
+@app.get("/pole_voltage_compare.json")
+def pole_voltage_compare_file():
+    p = APP_DIR / "pole_voltage_compare.json"
+    if p.exists():
+        return FileResponse(str(p), media_type="application/json")
+    return JSONResponse({"error": "missing"}, status_code=404)
+
+@app.get("/api/pole_distances")
+def api_pole_distances():
+    p = APP_DIR / "pole_distances.json"
+    if not p.exists():
+        return JSONResponse({"ok": False, "error": "pole_distances.json missing"}, status_code=404)
+    data = json.loads(p.read_text(encoding="utf-8"))
+    data["ok"] = True
+    return clean_nans(data)
+
+@app.get("/pole_distances.json")
+def pole_distances_file():
+    p = APP_DIR / "pole_distances.json"
+    if p.exists():
+        return FileResponse(str(p), media_type="application/json")
+    return JSONResponse({"error": "missing"}, status_code=404)
+
 # ---------- Snapshot Solve & Comparison Endpoints (POST + GET) ----------
 
 @app.api_route("/api/solve/peak", methods=["GET", "POST"])
