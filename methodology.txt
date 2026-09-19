@@ -1,0 +1,123 @@
+GRIDVISION — BZ0109 UNIFIED LECO OPEN-DSS METHODOLOGY
+=====================================================
+
+1. OVERALL PIPELINE SUMMARY
+---------------------------
+Step 1: Read GIS, billing, LP, and solar data (accounts normalized).
+Step 2: Build network feeders; calculate pole distance from Transformer (TF) along path length.
+Step 3: Place customer loads based on tariff category shapes and PV based on net-metering.
+Step 4: Scale and apply export-target calibration so TF net power tracks measured Load Profiling (LP) data.
+Step 5: Execute Quasi-Static Time Series (QSTS) simulation for 96 intervals (15-min steps).
+Step 6: Review net power, voltages, transformer loading, distance plots, and interactive map heat map.
+
+
+2. LOAD FLOW BEHAVIOR
+---------------------
+Condition               | What Happens                                   | Voltage Effect
+------------------------+------------------------------------------------+----------------------------------------
+Night / Evening Peak    | Load >> PV -> TF imports (P_net > 0)          | Voltage tends to drop along feeder
+Solar Noon              | PV can exceed load -> TF may export (P_net < 0)| Voltage can rise toward feeder ends
+Light Load              | Low line current                               | Poles near TF / nominal (~230V)
+Phase Unbalance         | Unequal load or PV on Phase A/B/C              | Va, Vb, Vc differ at same pole
+QSTS Step               | One steady snapshot every 15 min               | Quasi-static (not transient)
+
+
+3. MEASURED VS SIMULATED VOLTAGES
+---------------------------------
+Item                    | Measured (LP)                                  | Simulated (Model)
+------------------------+------------------------------------------------+----------------------------------------
+Where                   | Metered poles / times only                     | Every pole in the model
+Phases                  | Often single-phase                             | Phase A, Phase B, Phase C (Va, Vb, Vc)
+Evening                 | Voltage falls if recorded                      | Larger drop at long distances
+Solar Noon              | Voltage rises if recorded                      | Rise stronger with downstream PV
+Limits                  | 216.2 V (under-voltage limit) to 243.8 V (over-voltage limit), nominal 230 V
+
+
+4. CORE METHODOLOGY (PARTS A - L)
+---------------------------------
+
+Part A — Purpose and Scope:
+---------------------------
+GridVision builds a digital twin model of the BZ0109 low-voltage (LV) network and runs a quasi-static time series (QSTS) every 15 minutes for a selected study day.
+Answers:
+- TF net power vs measured LP data.
+- Phase voltages (measured vs simulated across network poles).
+- TF loading % and voltage risk against 216.2V - 243.8V legal limits.
+Transformer Ratings: 250 kVA (options 100/160/250/400/630 kVA); nominal ~230 V ph-n; 96 steps/day.
+
+Part B — Input Data and Preparation:
+------------------------------------
+- GIS / KMZ: Poles, coordinates, line segments, connectivity.
+- DATA (Billing): Account -> Pole mapping, tariff categories, monthly kWh.
+- Load Profile (LP): 15-min TF net kW, optional pole voltages, study days.
+- Solar Report: Account, pole, inverter kW rating.
+Preprocessing: Accounts matched after stripping leading zeros; billing cycle codes identify monthly energy; identical account in billing and solar implies a net-metered customer.
+
+Part C — Network Topology:
+--------------------------
+1. Poles = nodes; lines = edges.
+2. Transformer pole = source (distance 0 m).
+3. Each first hop from TF starts a feeder (F1, F2, ..., F8).
+4. Breadth-First Search (BFS) labels downstream poles with feeder IDs.
+5. Path distance d(k) = sum of edge lengths on path TF -> k.
+
+Part D — Tariff Categories, Load Models, and Shapes:
+----------------------------------------------------
+Tariff Category         | Load Model        | Typical Daily Behavior
+------------------------+-------------------+---------------------------------------------
+R1, R2, D1              | Constant current  | Residential: evening peak
+GP11, GP12, GP1-G       | Constant current  | Daytime commercial
+STL1, STL2              | Constant current  | Higher after dark (streetlights)
+I12                     | Constant power    | Industrial / flatter or shift-based
+
+Equations:
+- Average customer demand: P_avg,c = E_month,c / (N_days * 24)
+- Shaped customer load: P_c(t) = P_avg,c * s_tariff(c)(t) * alpha(t)
+- Total load: P_load(t) = P_base + sum_c P_c(t)
+
+Part E — Solar and Net-Metering:
+--------------------------------
+- PV Injection: P_pv,i(t) = P_inv,i * c_irr(t) * beta
+- Fleet PV: P_pv(t) = sum_i P_pv,i(t)
+- Gross Load Reconstruction: P_gross ≈ P_net + P_inv * CF * sigma
+  (CF ≈ 14-18% annual rooftop capacity factor in Sri Lanka; sigma = self-consumption fraction ~0.15-0.50).
+- Locked Export Target: P_pv*(t) = max(P_load(t) - P_meas(t), 0)
+
+Part F — Power-Flow Calculation and Balancing:
+----------------------------------------------
+- Global Power Balance: P_TF,net + P_pv = P_load + P_loss
+- TF Net Power: P_TF,net ≈ P_load - P_pv + P_loss (Import > 0, Export < 0)
+- One Time-step Procedure:
+  1. Fix time t (e.g. 19:00).
+  2. Calculate nodal injections: P_k^inj = P_pv,k - P_load,k.
+  3. Set Slack bus at TF LV (V_TF measured or nominal ~230V, angle 0).
+  4. Solve line equations: V_abcn = Z_4x4 * I_abcn (4-wire execution).
+  5. Check nodal current continuity (KCL), loading %, and voltage limits.
+- Transformer Loading %: L% ≈ |P_TF,net| / S_rated * 100
+
+Part G — Calibration and Metrics:
+---------------------------------
+- Raw Simulated Net Power: P_sim,raw(t) = P_load(t) - P_pv(t)
+- Calibrated Net Power: P_sim(t) = alpha(t) * P_sim,raw(t) + r(t)
+- Correlation: corr = corrcoef(P_meas, P_sim)
+- Power RMSE: RMSE_kW = sqrt(mean((P_sim - P_meas)^2))
+- Voltage RMSE: RMSE_V = sqrt(mean((V_sim - V_meas)^2))
+
+Part H — QSTS Simulation Steps (Detailed):
+------------------------------------------
+QSTS runs 96 steady-state power-flow snapshots (every 15 minutes from 00:00 to 23:45).
+- Step 0: Build network topology, customer models, solar maps, load LP data, and TF parameters.
+- Steps 1-8: Loop through intervals t = 00:00 to 23:45. Compute shaped loads, solar injection, global balance, solve power flow / radial voltage drop, check limits (216.2V - 243.8V), store results.
+- Step 9: Post-process outputs (correlation, RMSE, peak snapshot at ~19:00, noon snapshot, voltage profile plots).
+
+Part I — Pole Voltages and Visualizations:
+------------------------------------------
+- Distance vs. Voltage Plot: X-axis = Distance from TF (meters), Y-axis = Voltage (V). Limits at 216.2 V and 243.8 V.
+- Interactive Map Heat Map: Dynamically displays voltage levels across network poles based on time slider position.
+- Phase Colors: Phase A (Blue), Phase B (Orange), Phase C (Purple).
+
+Part J — Limitations:
+---------------------
+- Tariff shapes represent category averages rather than individual customer smart meter curves.
+- Simplified radial voltage drop estimation is used for fast UI rendering.
+- Reactive power (Q) and detailed neutral currents may be approximated in fast mode.

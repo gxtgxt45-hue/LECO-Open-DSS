@@ -1,0 +1,17 @@
+! OpenDSS Rooftop PV System Inverters on Poles (BZ0109)
+
+New PVSystem.PV_AR48N_Ph1 Bus1=AR48N.1.0 Phases=1 kV=0.23 kVA=5.00 pmpp=5.00 pf=1.0 %cutin=0.1 %cutout=0.1 
+New PVSystem.PV_AR48Q_Ph2 Bus1=AR48Q.2.0 Phases=1 kV=0.23 kVA=5.00 pmpp=5.00 pf=1.0 %cutin=0.1 %cutout=0.1 
+New PVSystem.PV_AR48X_Ph1 Bus1=AR48X.1.0 Phases=1 kV=0.23 kVA=36.60 pmpp=36.60 pf=1.0 %cutin=0.1 %cutout=0.1 
+New PVSystem.PV_AR48U_Ph1 Bus1=AR48U.1.0 Phases=1 kV=0.23 kVA=5.00 pmpp=5.00 pf=1.0 %cutin=0.1 %cutout=0.1 
+New PVSystem.PV_AR48M_Ph3 Bus1=AR48M.3.0 Phases=1 kV=0.23 kVA=10.00 pmpp=10.00 pf=1.0 %cutin=0.1 %cutout=0.1 
+New PVSystem.PV_AR48M__B3_Ph1 Bus1=AR48M__B3.1.0 Phases=1 kV=0.23 kVA=5.00 pmpp=5.00 pf=1.0 %cutin=0.1 %cutout=0.1 
+New PVSystem.PV_AR48N2_Ph2 Bus1=AR48N2.2.0 Phases=1 kV=0.23 kVA=5.00 pmpp=5.00 pf=1.0 %cutin=0.1 %cutout=0.1 
+New PVSystem.PV_AR48M__E4_Ph2 Bus1=AR48M__E4.2.0 Phases=1 kV=0.23 kVA=20.00 pmpp=20.00 pf=1.0 %cutin=0.1 %cutout=0.1 
+New PVSystem.PV_AR48W_C_Ph3 Bus1=AR48W_C.3.0 Phases=1 kV=0.23 kVA=45.00 pmpp=45.00 pf=1.0 %cutin=0.1 %cutout=0.1 
+New PVSystem.PV_AR48Q3_Ph2 Bus1=AR48Q3.2.0 Phases=1 kV=0.23 kVA=5.00 pmpp=5.00 pf=1.0 %cutin=0.1 %cutout=0.1 
+New PVSystem.PV_AR48U_P_E_A_Ph2 Bus1=AR48U_P_E_A.2.0 Phases=1 kV=0.23 kVA=5.00 pmpp=5.00 pf=1.0 %cutin=0.1 %cutout=0.1 
+New PVSystem.PV_AR48U_Q_Ph1 Bus1=AR48U_Q.1.0 Phases=1 kV=0.23 kVA=5.00 pmpp=5.00 pf=1.0 %cutin=0.1 %cutout=0.1 
+New PVSystem.PV_AR48U_P_C_Ph2 Bus1=AR48U_P_C.2.0 Phases=1 kV=0.23 kVA=5.00 pmpp=5.00 pf=1.0 %cutin=0.1 %cutout=0.1 
+New PVSystem.PV_AR48M__B_Ph3 Bus1=AR48M__B.3.0 Phases=1 kV=0.23 kVA=5.00 pmpp=5.00 pf=1.0 %cutin=0.1 %cutout=0.1 
+New PVSystem.PV_AR48U_D_D_B_Ph1 Bus1=AR48U_D_D_B.1.0 Phases=1 kV=0.23 kVA=5.00 pmpp=5.00 pf=1.0 %cutin=0.1 %cutout=0.1 

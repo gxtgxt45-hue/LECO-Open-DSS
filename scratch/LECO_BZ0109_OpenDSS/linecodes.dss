@@ -1,0 +1,7 @@
+! OpenDSS Linecode Definitions for LECO LV Conductors
+! Linecodes based on standard LECO LV 400V Overhead Lines / ABC Cable
+
+New Linecode.ABC_70 nphases=3 r1=0.443 x1=0.09 r0=1.329 x0=0.27 units=km
+New Linecode.Fly_AAC nphases=3 r1=0.270 x1=0.30 r0=0.810 x0=0.90 units=km
+New Linecode.Wasp_AAC nphases=3 r1=0.160 x1=0.28 r0=0.480 x0=0.84 units=km
+New Linecode.Default_LV nphases=3 r1=0.350 x1=0.15 r0=1.050 x0=0.45 units=km

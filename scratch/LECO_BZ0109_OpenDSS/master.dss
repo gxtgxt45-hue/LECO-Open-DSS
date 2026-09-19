@@ -1,0 +1,34 @@
+! OpenDSS Master Circuit File for LECO Transformer BZ0109
+! Generated automatically by GridVision OpenDSS Studio
+
+Clear
+
+! Define 11kV Substation Source (Base 11kV L-L, 50 Hz)
+New Circuit.LECO_BZ0109 basekv=11.0 pu=1.00 angle=0 frequency=50 phases=3
+
+! Define 11kV / 0.4kV Distribution Transformer (250 kVA)
+New Transformer.Tx_BZ0109 Phases=3 Windings=2 Wdg=1 Bus=SourceBus kV=11.0 kVA=250 Conn=Delta Wdg=2 Bus=TX_LV_BUS.1.2.3.0 kV=0.400 kVA=250 Conn=Wye %R=1.0 XHL=4.5
+
+! Load Conductor Linecodes
+Redirect linecodes.dss
+
+! Load Network Line Topology
+Redirect lines.dss
+
+! Load Customer Connections
+Redirect loads.dss
+
+! Load Solar Rooftop PV Inverters
+Redirect pvsystem.dss
+
+! Set Voltage Bases
+Set voltagebases=[11.0, 0.400]
+CalcVoltageBases
+
+! Set Control & Solve Options
+Set Mode=Snapshot
+Solve
+
+! Summary Outputs
+Show Voltages LN Nodes
+Show Losses

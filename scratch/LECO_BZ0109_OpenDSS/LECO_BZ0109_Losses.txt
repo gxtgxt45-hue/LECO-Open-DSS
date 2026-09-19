@@ -1,0 +1,71 @@
+
+LOSSES REPORT
+
+Power Delivery Element Loss Report
+
+Element                  kW Losses    % of Power   kvar Losses
+
+"Transformer.tx_bz0109"   0.00000,      0.0     0
+"Line.l_tx_to_ar48n"   0.00000,      0.0     0
+"Line.l_ar48u_p_l_ar48u_p_g"   0.00000,      0.0     0
+"Line.l_ar48u_p_g3_ar48u_p_g"   0.00000,      0.0     0
+"Line.l_ar48u_p_g__4_ar48u_p_g"   0.00000,      0.0     0
+"Line.l_ar48n4_ar48n"   0.00000,      0.0     0
+"Line.l_ar48m__b_ar48n"   0.00000,      0.0     0
+"Line.l_ar48n_ar48t"   0.00000,      0.0     0
+"Line.l_ar48u_f2_ar48u_f"   0.00000,      0.0     0
+"Line.l_ar48u_g_ar48u_f"   0.00000,      0.0     0
+"Line.l_ar48u_d_ar48u_b"   0.00000,      0.0     0
+"Line.l_ar48q4_2_ar48q4"   0.00000,      0.0     0
+"Line.l_ar48q4_ar48t"   0.00000,      0.0     0
+"Line.l_ar48u_g_c_ar48u_g"   0.00000,      0.0     0
+"Line.l_ar48y_ar48w"   0.00000,      0.0     0
+"Line.l_ar48u_d_d_ar48u_d"   0.00000,      0.0     0
+"Line.l_ar48u_b_ar48u"   0.00000,      0.0     0
+"Line.l_ar48u_b_b_ar48u_b"   0.00000,      0.0     0
+"Line.l_ar48w_c_ar48w"   0.00000,      0.0     0
+"Line.l_ar48u_f_ar48u_d"   0.00000,      0.0     0
+"Line.l_ar48q7_ar48q4"   0.00000,      0.0     0
+"Line.l_ar48u_p_e_ar48u_p_b"   0.00000,      0.0     0
+"Line.l_ar48u_p_g_ar48u_p_e"   0.00000,      0.0     0
+"Line.l_ar48u_p_e_c_ar48u_p_e"   0.00000,      0.0     0
+"Line.l_ar48u_r1_ar48u_r"   0.00000,      0.0     0
+"Line.l_ar48u_v_ar48u_r"   0.00000,      0.0     0
+"Line.l_ar48u_r_ar48u_q"   0.00000,      0.0     0
+"Line.l_ar48u_p_b_ar48u_p"   0.00000,      0.0     0
+"Line.l_ar48u_q_ar48u_p"   0.00000,      0.0     0
+"Line.l_ar48w_ar48t"   0.00000,      0.0     0
+"Line.l_ar48v_ar48t"   0.00000,      0.0     0
+"Line.l_ar48u_ar48t"   0.00000,      0.0     0
+"Line.l_ar48u_n_ar48u_m"   0.00000,      0.0     0
+"Line.l_ar48u_p_ar48u_n"   0.00000,      0.0     0
+"Line.l_ar48u_m_c_ar48u_m"   0.00000,      0.0     0
+"Line.l_ar48u_m_ar48u_l"   0.00000,      0.0     0
+"Line.l_ar48q_ar48t"   0.00000,      0.0     0
+"Line.l_ar48m__e3_ar48t"   0.00000,      0.0     0
+"Line.l_ar48m__b4_ar48m__b"   0.00000,      0.0     0
+"Line.l_ar48m__e6_ar48m__e3"   0.00000,      0.0     0
+"Line.l_ar48m__h_ar48m__e"   0.00000,      0.0     0
+"Line.l_ar48m__e3a_ar48m__e3"   0.00000,      0.0     0
+"Line.l_ar48u_d_d_b_ar48u_d"   0.00000,      0.0     0
+"Line.l_ar48u_p_b_1b_ar48u_p_b_1"   0.00000,      0.0     0
+"Line.l_ar48u_w_ar48u_v"   0.00000,      0.0     0
+"Line.l_ar48u_y_ar48u_w"   0.00000,      0.0     0
+"Line.l_ar48u_v3_ar48u_v"   0.00000,      0.0     0
+"Line.l_ar48u_w3_ar48u_w"   0.00000,      0.0     0
+"Line.l_ar48u_w3a_ar48u_w3"   0.00000,      0.0     0
+"Line.l_ar48u_w6_ar48u_w3"   0.00000,      0.0     0
+"Line.l_ar48u_p_b_a_ar48u_p_b"   0.00000,      0.0     0
+"Line.l_ar48u_q2_ar48u_q"   0.00000,      0.0     0
+"Line.l_ar48u_n3_ar48u_n"   0.00000,      0.0     0
+"Line.l_ar48u_l_ar48u_g"   0.00000,      0.0     0
+"Line.l_ar48u_l_c_ar48u_l"   0.00000,      0.0     0
+"Line.l_ar48u_p_b_a_ar48t"   0.00000,      0.0     0
+
+LINE LOSSES=                         0.0 kW
+TRANSFORMER LOSSES=                  0.0 kW
+
+TOTAL LOSSES=                        0.0 kW
+
+TOTAL LOAD POWER =                   0.0 kW
+Percent Losses for Circuit =  

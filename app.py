@@ -535,7 +535,6 @@ if STATIC_DIR.exists():
 
 @app.get("/", response_class=HTMLResponse)
 @app.get("/results", response_class=HTMLResponse)
-@app.get("/methodology", response_class=HTMLResponse)
 @app.get("/ui", response_class=HTMLResponse)
 def index():
     index_path = STATIC_DIR / "index.html"
@@ -545,6 +544,13 @@ def index():
     if fallback_html.exists():
         return FileResponse(str(fallback_html))
     return HTMLResponse("<h2>GridVision OpenDSS Studio</h2>")
+
+@app.get("/methodology")
+def get_methodology():
+    meth_path = APP_DIR / "methodology.txt"
+    if meth_path.exists():
+        return FileResponse(str(meth_path), media_type="text/plain; charset=utf-8")
+    return JSONResponse({"error": "methodology.txt not found"}, status_code=404)
 
 if __name__ == "__main__":
     import uvicorn
